@@ -1,68 +1,112 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import url("/fonts.css");
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  :root {
+    --background-app-rgb: 255, 255, 255;
+    --color-primary-900: 74, 109, 255;
+    --color-primary-800: 92, 124, 255;
+    --color-primary-700: 110, 138, 255;
+    --color-primary-600: 128, 153, 255;
+    --color-primary-500: 146, 167, 255;
+    --color-primary-400: 164, 182, 255;
+    --color-primary-300: 183, 197, 255;
+    --color-primary-200: 201, 211, 255;
+    --color-primary-100: 219, 226, 255;
+    --color-primary-50: 228, 233, 255;
+    --color-secondary-900: 17, 24, 39;
+    --color-secondary-800: 31, 41, 55;
+    --color-secondary-700: 55, 65, 81;
+    --color-secondary-600: 75, 85, 99;
+    --color-secondary-500: 107, 114, 128;
+    --color-secondary-400: 156, 163, 175;
+    --color-secondary-300: 209, 213, 219;
+    --color-secondary-200: 229, 231, 235;
+    --color-secondary-100: 243, 244, 246;
+    --color-secondary-50: 249, 250, 251;
+    --color-secondary-0: 255, 255, 255;
+    --color-success: 0, 192, 115;
+    --color-warning: 255, 153, 0;
+    --color-error: 255, 71, 87;
+    --color-red-500: 239, 68, 68;
+    --color-red-300: 252, 165, 165;
+  }
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
+html,
 body {
+  padding: 0;
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
+  font-family: "Vazir";
   min-height: 100vh;
+  user-select: none;
+  background-color: rgb(var(--background-app-rgb));
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+* {
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+  /* border: none; */
+  outline: none;
+  padding: 0;
+  margin: 0;
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
   cursor: pointer;
-  transition: border-color 0.25s;
+  outline: none;
 }
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+button:disabled {
+  cursor: default;
+  background-color: rgb(var(--color-secondary-100), 0.5);
+  pointer-events: none;
+  box-shadow: none;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* inupt number */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  /* display: none; <- Crashes Chrome on hover */
+  -webkit-appearance: none;
+  margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
 }
+
+input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+}
+
+/* TABLE */
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+}
+
+table .title-row {
+  background-color: rgb(var(--color-secondary-100));
+}
+
+table td,
+table th {
+  border-bottom: 1px solid rgb(var(--color-secondary-200));
+  text-align: right;
+  white-space: nowrap;
+}
+
+table th {
+  padding: 0.6rem 1rem;
+  color: rgb(var(--color-secondary-600));
+  font-size: 0.9rem;
+}
+
+table td {
+  font-size: 0.85rem;
+  padding: 1rem 1rem;
+  color: rgb(var(--color-secondary-600));
+}
+
+/*  react tag input */
