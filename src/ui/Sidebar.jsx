@@ -26,7 +26,7 @@ export default Sidebar;
 
 function CustomNavlink({ children, to }) {
   const navlinkClass =
-    "flex items-center gap-x-2 hover:text-primary-900 px-2 py-1.5 rounded-lg  transition-all duration-200";
+    "flex items-center gap-x-2 hover:text-primary-900 px-2 py-1.5 rounded-lg  transition-all duration-300";
 
   return (
     <NavLink
