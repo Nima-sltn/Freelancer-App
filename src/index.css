@@ -53,7 +53,7 @@
     @apply border border-secondary-700 text-secondary-700;
   }
   .btn--danger {
-    @apply border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white;
+    @apply border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white hover:shadow-lg hover:shadow-rose-200;
   }
   .badge {
     @apply inline-block whitespace-nowrap rounded-xl px-2 py-0.5;
