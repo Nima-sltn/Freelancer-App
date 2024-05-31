@@ -1,10 +1,10 @@
 import TextField from "./../../ui/TextField";
-import RadioInput from "../../ui/RadioInput";
 import { useMutation } from "@tanstack/react-query";
 import { completeProfile } from "./../../services/authService";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import RadioInputGroup from "./../../ui/RadioInputGroup";
 
 function CompleteProfileform() {
   const {
@@ -60,35 +60,19 @@ function CompleteProfileform() {
             }}
             errors={errors}
           />
-          <div className="flex flex-col items-center ">
-            <div className="flex items-center justify-center gap-x-8">
-              <RadioInput
-                label="کارفرما"
-                name="role"
-                id="OWNER"
-                value="OWNER"
-                register={register}
-                watch={watch}
-                validationSchema={{ required: "انتخاب نقش ضروری است" }}
-                errors={errors}
-              />
-              <RadioInput
-                label="فریلنسر"
-                name="role"
-                id="FREELANCER"
-                value="FREELANCER"
-                register={register}
-                watch={watch}
-                validationSchema={{ required: "انتخاب نقش ضروری است" }}
-                errors={errors}
-              />
-            </div>
-            {errors && errors["role"] && (
-              <span className="text-error block text-sm mt-2">
-                {errors["role"]?.message}
-              </span>
-            )}
-          </div>
+          <RadioInputGroup
+            errors={errors}
+            register={register}
+            watch={watch}
+            configs={{
+              name: "role",
+              validationSchema: { required: "انتخاب نقش ضروری است" },
+              options: [
+                { value: "OWNER", label: "کارفرما" },
+                { value: "FREELANCER", label: "فریلنسر" },
+              ],
+            }}
+          />
           <button className="btn btn--primary w-full">تایید</button>
         </form>
       </div>
