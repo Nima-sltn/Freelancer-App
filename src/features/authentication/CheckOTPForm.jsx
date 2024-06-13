@@ -22,10 +22,14 @@ function CheckOTPForm({ phoneNumber, onBack, onReSendOtp, otpResponse }) {
   const checkOtpHandler = async (e) => {
     e.preventDefault();
     try {
-      const { message, user } = await mutateAsync({ phoneNumber, otp });
+      const { user, message } = await mutateAsync({ phoneNumber, otp });
       toast.success(message);
-
       if (!user.isActive) return navigate("/complete-profile");
+      if (Number(user.status) !== 2) {
+        navigate("/");
+        toast("پروفایل شما در انتظار تایید است", { icon: "👏" });
+        return;
+      }
       if (user.role === "OWNER") return navigate("/owner");
       if (user.role === "FREELANCER") return navigate("/freelancer");
     } catch (error) {
