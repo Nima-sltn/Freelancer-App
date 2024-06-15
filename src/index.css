@@ -55,6 +55,9 @@
   background-color: rgb(var(--color-secondary-500));
   color: rgb(var(--color-secondary-100));
 }
+.rti--tag button {
+  padding: 0.25rem 0.5rem 0;
+}
 
 @layer utilities {
   .scrollbar {

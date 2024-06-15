@@ -7,19 +7,44 @@ import DatePickerField from "../../ui/DatePickerField";
 import useCategories from "../../hooks/useCategories";
 import useCreateProject from "./useCreateProject";
 import Loading from "./../../ui/Loading";
+import useEditProject from "./useEditProject";
 
-function CreateProjectForm({ onClose }) {
+function CreateProjectForm({ onClose, projectToEdit = {} }) {
+  const { _id: editId } = projectToEdit;
+  const isEditSession = Boolean(editId);
+
+  const {
+    title,
+    description,
+    budget,
+    category,
+    deadline,
+    tags: prevTags,
+  } = projectToEdit;
+
+  let editValues = {};
+
+  if (isEditSession) {
+    editValues = {
+      title,
+      description,
+      budget,
+      captureEvents: category._id,
+    };
+  }
+
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm();
+  } = useForm({ defaultValues: editValues });
 
-  const [tags, setTags] = useState([]);
-  const [date, setDate] = useState(new Date());
+  const [tags, setTags] = useState(prevTags || []);
+  const [date, setDate] = useState(new Date(deadline || ""));
   const { categories } = useCategories();
   const { createPoject, isCreating } = useCreateProject();
+  const { editProject, isEditing } = useEditProject();
 
   const onSubmit = (data) => {
     const newProject = {
@@ -27,12 +52,25 @@ function CreateProjectForm({ onClose }) {
       deadline: new Date(date).toISOString(),
       tags,
     };
-    createPoject(newProject, {
-      onSuccess: () => {
-        onClose();
-        reset();
-      },
-    });
+
+    if (isEditSession) {
+      editProject(
+        { editId, newProject },
+        {
+          onSuccess: () => {
+            onClose();
+            reset();
+          },
+        }
+      );
+    } else {
+      createPoject(newProject, {
+        onSuccess: () => {
+          onClose();
+          reset();
+        },
+      });
+    }
   };
 
   return (
@@ -88,7 +126,7 @@ function CreateProjectForm({ onClose }) {
       </div>
       <DatePickerField date={date} setDate={setDate} label="ددلاین" />
       <div className="mt-8">
-        {isCreating ? (
+        {isCreating || isEditing ? (
           <Loading />
         ) : (
           <button
