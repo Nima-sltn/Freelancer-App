@@ -56,6 +56,16 @@
   color: rgb(var(--color-secondary-100));
 }
 
+@layer utilities {
+  .scrollbar {
+    direction: ltr;
+  }
+
+  .flipped {
+    direction: rtl;
+  }
+}
+
 @layer components {
   .textField__input {
     @apply w-full px-4 py-3 text-secondary-900 border border-gray-300 rounded-xl hover:border-primary-500 focus:border-primary-500 focus:bg-white focus:shadow-lg focus:shadow-primary-200 transition-all duration-200 ease-out;
