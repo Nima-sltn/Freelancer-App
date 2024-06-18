@@ -6,33 +6,51 @@
 
 @layer base {
   :root {
-    --background-app-rgb: 255, 255, 255;
-    --color-primary-900: 74, 109, 255;
-    --color-primary-800: 92, 124, 255;
-    --color-primary-700: 110, 138, 255;
-    --color-primary-600: 128, 153, 255;
-    --color-primary-500: 146, 167, 255;
-    --color-primary-400: 164, 182, 255;
-    --color-primary-300: 183, 197, 255;
-    --color-primary-200: 201, 211, 255;
-    --color-primary-100: 219, 226, 255;
-    --color-primary-50: 228, 233, 255;
-    --color-secondary-900: 17, 24, 39;
-    --color-secondary-800: 31, 41, 55;
-    --color-secondary-700: 55, 65, 81;
-    --color-secondary-600: 75, 85, 99;
-    --color-secondary-500: 107, 114, 128;
-    --color-secondary-400: 156, 163, 175;
-    --color-secondary-300: 209, 213, 219;
-    --color-secondary-200: 229, 231, 235;
-    --color-secondary-100: 243, 244, 246;
-    --color-secondary-50: 249, 250, 251;
-    --color-secondary-0: 255, 255, 255;
-    --color-success: 0, 192, 115;
-    --color-warning: 255, 153, 0;
-    --color-error: 255, 71, 87;
-    --color-red-500: 239, 68, 68;
-    --color-red-300: 252, 165, 165;
+    &,
+    &.light-mode {
+      --background-app-rgb: 255, 255, 255;
+      --color-primary-900: 74, 109, 255;
+      --color-primary-800: 92, 124, 255;
+      --color-primary-700: 110, 138, 255;
+      --color-primary-600: 128, 153, 255;
+      --color-primary-500: 146, 167, 255;
+      --color-primary-400: 164, 182, 255;
+      --color-primary-300: 183, 197, 255;
+      --color-primary-200: 201, 211, 255;
+      --color-primary-100: 219, 226, 255;
+      --color-primary-50: 228, 233, 255;
+      --color-secondary-900: 17, 24, 39;
+      --color-secondary-800: 31, 41, 55;
+      --color-secondary-700: 55, 65, 81;
+      --color-secondary-600: 75, 85, 99;
+      --color-secondary-500: 107, 114, 128;
+      --color-secondary-400: 156, 163, 175;
+      --color-secondary-300: 209, 213, 219;
+      --color-secondary-200: 229, 231, 235;
+      --color-secondary-100: 243, 244, 246;
+      --color-secondary-50: 249, 250, 251;
+      --color-secondary-0: 255, 255, 255;
+      --color-success: 0, 192, 115;
+      --color-warning: 255, 153, 0;
+      --color-error: 255, 71, 87;
+      --color-red-500: 239, 68, 68;
+      --color-red-300: 252, 165, 165;
+    }
+    &.dark-mode {
+      --color-secondary-900: 249, 250, 251;
+      --color-secondary-800: 243, 244, 246;
+      --color-secondary-700: 229, 231, 235;
+      --color-secondary-600: 209, 213, 219;
+      --color-secondary-500: 156, 163, 175;
+      --color-secondary-400: 107, 114, 128;
+      --color-secondary-300: 75, 85, 99;
+      --color-secondary-200: 55, 65, 81;
+      --color-secondary-100: 31, 41, 55;
+      --color-secondary-50: 17, 24, 39;
+      --color-secondary-0: 24, 33, 47;
+      --color-primary-300: 183, 197, 255, 0.3;
+      --backdrop-color: 0, 0, 0;
+    }
   }
 }
 
