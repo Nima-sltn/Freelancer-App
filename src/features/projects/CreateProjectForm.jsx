@@ -32,7 +32,6 @@ function CreateProjectForm({ onClose, projectToEdit = {} }) {
       captureEvents: category._id,
     };
   }
-
   const {
     register,
     handleSubmit,
