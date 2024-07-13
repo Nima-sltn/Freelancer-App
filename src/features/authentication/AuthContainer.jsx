@@ -25,7 +25,7 @@ function AuthContainer() {
     }
   };
 
-  const [step, setStep] = useState(2);
+  const [step, setStep] = useState(1);
   const { register, handleSubmit, getValues } = useForm();
 
   const renderStep = () => {

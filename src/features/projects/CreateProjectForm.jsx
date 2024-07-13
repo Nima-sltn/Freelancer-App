@@ -42,7 +42,7 @@ function CreateProjectForm({ onClose, projectToEdit = {} }) {
   const [tags, setTags] = useState(prevTags || []);
   const [date, setDate] = useState(new Date(deadline || ""));
   const { categories } = useCategories();
-  const { createPoject, isCreating } = useCreateProject();
+  const { createProject, isCreating } = useCreateProject();
   const { editProject, isEditing } = useEditProject();
 
   const onSubmit = (data) => {
@@ -63,7 +63,7 @@ function CreateProjectForm({ onClose, projectToEdit = {} }) {
         }
       );
     } else {
-      createPoject(newProject, {
+      createProject(newProject, {
         onSuccess: () => {
           onClose();
           reset();
