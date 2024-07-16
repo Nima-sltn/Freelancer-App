@@ -3,7 +3,7 @@ import { HiCollection, HiOutlineViewGrid, HiUser } from "react-icons/hi";
 
 function Stats({ proposals, users, projects }) {
   return (
-    <div className="grid grid-cols-2 gap-8">
+    <div className="grid grid-cols-3 gap-8">
       <Stat
         title="کاربران"
         value={users}
