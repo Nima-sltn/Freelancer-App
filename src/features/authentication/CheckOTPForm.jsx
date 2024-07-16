@@ -32,6 +32,7 @@ function CheckOTPForm({ phoneNumber, onBack, onReSendOtp, otpResponse }) {
       }
       if (user.role === "OWNER") return navigate("/owner");
       if (user.role === "FREELANCER") return navigate("/freelancer");
+      if (user.role === "ADMIN") return navigate("/admin");
     } catch (error) {
       toast.error(error?.response?.data?.message);
     }
@@ -78,7 +79,9 @@ function CheckOTPForm({ phoneNumber, onBack, onReSendOtp, otpResponse }) {
           </div>
           {otpResponse && (
             <p className="flex justify-center gap-x-2">
-              <span>{otpResponse?.message}</span>
+              <span className="text-secondary-500 flex justify-center">
+                {otpResponse?.message}
+              </span>
               <button onClick={onBack}>
                 <CiEdit className="w-6 h-6 text-primary-900" />
               </button>
