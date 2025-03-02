@@ -136,7 +136,6 @@ body {
 * {
   box-sizing: border-box;
   scroll-behavior: smooth;
-  /* border: none; */
   outline: none;
   padding: 0;
   margin: 0;
@@ -153,10 +152,8 @@ button:disabled {
   box-shadow: none;
 }
 
-/* inupt number */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  /* display: none; <- Crashes Chrome on hover */
   -webkit-appearance: none;
   margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
 }
@@ -195,5 +192,3 @@ table td {
   padding: 1rem 1rem;
   color: rgb(var(--color-secondary-600));
 }
-
-/*  react tag input */

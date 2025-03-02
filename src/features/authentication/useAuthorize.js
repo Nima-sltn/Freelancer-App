@@ -12,18 +12,6 @@ export default function useAuthorize() {
   let isVerified = false;
   if (user && Number(user.status) === 2) isVerified = true;
 
-  // if (pathname.includes("owner")) {
-  //   if (user && user.role === "OWNER") isAuthorized = true;
-  // }
-
-  // if (pathname.includes("freelancer")) {
-  //   if (user && user.role === "FREELANCER") isAuthorized = true;
-  // }
-
-  // if (pathname.includes("admin")) {
-  //   if (user && user.role === "ADMIN") isAuthorized = true;
-  // }
-
   const ROLES = {
     admin: "ADMIN",
     freelancer: "FREELANCER",

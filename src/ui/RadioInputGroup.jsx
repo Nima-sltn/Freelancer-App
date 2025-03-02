@@ -20,7 +20,7 @@ function RadioInputGroup({ register, watch, errors, configs }) {
           />
         ))}
       </div>
-      {errors && errors[name] && (
+      {errors?.[name] && (
         <span className="text-error block text-sm mt-2">
           {errors[name]?.message}
         </span>

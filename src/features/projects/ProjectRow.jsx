@@ -39,43 +39,39 @@ function ProjectRow({ project, index }) {
       </td>
       <td>
         <div className="flex items-center gap-x-4">
-          <>
-            <button onClick={() => setIsEditOpen(true)}>
-              <TbPencilMinus className="h-5 w-5 text-primary-900" />
-            </button>
-            <Modal
-              title={`ویرایش ${project.title}`}
-              isOpen={isEditOpen}
-              onClose={() => setIsEditOpen(false)}>
-              <CreateProjectForm
-                projectToEdit={project}
-                onClose={() => setIsEditOpen(false)}
-              />
-            </Modal>
-          </>
+          <button onClick={() => setIsEditOpen(true)}>
+            <TbPencilMinus className="h-5 w-5 text-primary-900" />
+          </button>
+          <Modal
+            title={`ویرایش ${project.title}`}
+            isOpen={isEditOpen}
+            onClose={() => setIsEditOpen(false)}>
+            <CreateProjectForm
+              projectToEdit={project}
+              onClose={() => setIsEditOpen(false)}
+            />
+          </Modal>
 
-          <>
-            <button onClick={() => setIsDeleteOpen(true)}>
-              <HiOutlineTrash className="h-5 w-5 text-error" />
-            </button>
-            <Modal
-              title={`حذف ${project.title}`}
-              isOpen={isDeleteOpen}
-              onClose={() => setIsDeleteOpen(false)}>
-              <ConfirmDelete
-                resourceName={project.title}
-                onClose={() => setIsDeleteOpen(false)}
-                onConfirm={() =>
-                  removeProject(project._id, {
-                    onSuccess: () => {
-                      setIsDeleteOpen(false);
-                    },
-                  })
-                }
-                disabled={false}
-              />
-            </Modal>
-          </>
+          <button onClick={() => setIsDeleteOpen(true)}>
+            <HiOutlineTrash className="h-5 w-5 text-error" />
+          </button>
+          <Modal
+            title={`حذف ${project.title}`}
+            isOpen={isDeleteOpen}
+            onClose={() => setIsDeleteOpen(false)}>
+            <ConfirmDelete
+              resourceName={project.title}
+              onClose={() => setIsDeleteOpen(false)}
+              onConfirm={() =>
+                removeProject(project._id, {
+                  onSuccess: () => {
+                    setIsDeleteOpen(false);
+                  },
+                })
+              }
+              disabled={false}
+            />
+          </Modal>
         </div>
       </td>
       <td>

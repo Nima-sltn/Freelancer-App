@@ -1,13 +1,10 @@
-import { Switch } from "@headlessui/react";
 import { useState } from "react";
 import useToggleProjectStatus from "./useToggleProjectStatus";
 import Loading from "./../../ui/Loading";
 import Toggle from "../../ui/Toggle";
 
 function ToggleProjectStatus({ project }) {
-  const [enabled, setEnabled] = useState(
-    project.status === "OPEN" ? true : false
-  );
+  const [enabled, setEnabled] = useState(project.status === "OPEN");
 
   const { isUpdating, toggleProjectStatus } = useToggleProjectStatus();
 
