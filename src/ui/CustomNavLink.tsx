@@ -1,0 +1,27 @@
+import { NavLink } from "react-router-dom";
+import type { ReactNode } from "react";
+
+export default function CustomNavlink({
+  children,
+  to,
+}: {
+  children: ReactNode;
+  to: string;
+}) {
+  const navlinkClass =
+    "flex items-center gap-x-2 hover:text-primary-900 px-2 py-1.5 rounded-lg  transition-all duration-300";
+
+  return (
+    <li>
+      <NavLink
+        to={to}
+        className={({ isActive }) =>
+          isActive
+            ? `${navlinkClass} bg-primary-100/90 text-primary-900`
+            : `${navlinkClass} text-secondary-600 hover:bg-primary-100/70`
+        }>
+        {children}
+      </NavLink>
+    </li>
+  );
+}
