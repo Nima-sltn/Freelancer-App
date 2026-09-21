@@ -10,7 +10,7 @@ interface ToggleProjectStatusProps {
 
 function ToggleProjectStatus({ project }: ToggleProjectStatusProps) {
   const [enabled, setEnabled] = useState(
-    project.status === "OPEN" ? true : false
+    project.status === "OPEN" ? true : false,
   );
 
   const { isUpdating, toggleProjectStatus } = useToggleProjectStatus();
@@ -26,7 +26,7 @@ function ToggleProjectStatus({ project }: ToggleProjectStatusProps) {
         onSuccess: () => {
           setEnabled((prev) => !prev);
         },
-      }
+      },
     );
   };
 

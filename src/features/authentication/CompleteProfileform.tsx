@@ -15,7 +15,7 @@ function CompleteProfileform() {
   } = useForm();
   const navigate = useNavigate();
 
-  const { mutateAsync, isPending } = useMutation({
+  const { mutateAsync } = useMutation({
     mutationFn: completeProfile,
   });
 
