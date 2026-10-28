@@ -1,16 +1,16 @@
 /// <reference types="vite/client" />
 
-declare module "*.css" {
-  const content: Record<string, string>;
-  export default content;
+type ApiModeEnv = "live" | "mock";
+
+interface ImportMetaEnv {
+  readonly VITE_API_URL?: string;
+  readonly VITE_API_MODE?: ApiModeEnv;
+  readonly VITE_MOCK_LATENCY?: string;
+  readonly VITE_ENABLE_DEVTOOLS?: string;
+  readonly VITE_ENABLE_SERVICE_WORKER?: string;
+  readonly VITE_ENABLE_REALTIME?: string;
 }
 
-declare module "react-date-object/calendars/persian" {
-  const persian: any;
-  export default persian;
-}
-
-declare module "react-date-object/locales/persian_fa" {
-  const persian_fa: any;
-  export default persian_fa;
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
 }

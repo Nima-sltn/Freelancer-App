@@ -1,49 +1,36 @@
-import http from "./httpService";
-import type { Project, CreateProjectData, EditProjectData } from "../types";
+import { http } from "@/lib/http";
+import type {
+  CreateProjectData,
+  MessageResponse,
+  Project,
+  ProjectFilters,
+} from "@/types";
 
-export function getOwnerProjectsApi(): Promise<{ projects: Project[] }> {
-  return http.get("/project/owner-projects").then(({ data }) => data.data);
-}
+/**
+ * Project endpoints. Filter objects are serialised once by the axios client
+ * (`arrays` become comma-joined query params, which is what the Express
+ * controllers parse) instead of hand-built query strings at the call site.
+ */
+export const projectService = {
+  list: (filters: ProjectFilters = {}): Promise<{ projects: Project[] }> =>
+    http.get<{ projects: Project[] }>("/project/list", { params: filters }),
 
-export function removeProjectApi(
-  id: string
-): Promise<{ message: string }> {
-  return http.delete(`/project/${id}`).then(({ data }) => data.data);
-}
+  owned: (filters: ProjectFilters = {}): Promise<{ projects: Project[] }> =>
+    http.get<{ projects: Project[] }>("/project/owner-projects", { params: filters }),
 
-export function createProjectApi(
-  data: CreateProjectData
-): Promise<{ message: string }> {
-  return http.post(`/project/add`, data).then(({ data }) => data.data);
-}
+  detail: (id: string): Promise<{ project: Project }> =>
+    http.get<{ project: Project }>(`/project/${id}`),
 
-export function editProjectApi({
-  id,
-  newProject,
-}: EditProjectData & { id: string }): Promise<{ message: string }> {
-  return http
-    .patch(`/project/update/${id}`, newProject)
-    .then(({ data }) => data.data);
-}
+  create: (data: CreateProjectData): Promise<{ message: string; project: Project }> =>
+    http.post<{ message: string; project: Project }>("/project/add", data),
 
-export function toggleProjectStatusApi({
-  id,
-  data,
-}: {
-  id: string;
-  data: { status: string };
-}): Promise<{ message: string }> {
-  return http.patch(`/project/${id}`, data).then(({ data }) => data.data);
-}
+  update: (id: string, data: CreateProjectData): Promise<MessageResponse> =>
+    http.patch<MessageResponse>(`/project/update/${id}`, data),
 
-export function getProjectApi(
-  id: string | undefined
-): Promise<{ project: Project }> {
-  return http.get(`/project/${id}`).then(({ data }) => data.data);
-}
+  changeStatus: (id: string, status: "OPEN" | "CLOSED"): Promise<MessageResponse> =>
+    http.patch<MessageResponse>(`/project/${id}`, { status }),
 
-export function getProjectsApi(
-  qs: string
-): Promise<{ projects: Project[] }> {
-  return http.get(`/project/list${qs}`).then(({ data }) => data.data);
-}
+  remove: (id: string): Promise<MessageResponse> => http.delete<MessageResponse>(`/project/${id}`),
+};
+
+export default projectService;

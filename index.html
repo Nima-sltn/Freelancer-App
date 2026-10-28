@@ -2,12 +2,54 @@
 <html lang="fa" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="stylesheet" href="/fonts.css" />
+    <link rel="stylesheet" href="/src/index.css" />
+    <meta name="theme-color" content="#4a6dff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#101828" media="(prefers-color-scheme: dark)" />
+    <meta
+      name="description"
+      content="فریلنس‌هاب — پلتفرم مدیریت پروژه، پیشنهاد قیمت و همکاری میان کارفرما، فریلنسر و ادمین"
+    />
+    <meta property="og:title" content="فریلنس‌هاب | FreelanceHub" />
+    <meta
+      property="og:description"
+      content="پلتفرم مدیریت پروژه، پیشنهاد قیمت و همکاری میان کارفرما، فریلنسر و ادمین"
+    />
+    <meta property="og:type" content="website" />
+    <title>فریلنس‌هاب | FreelanceHub</title>
+    <script>
+      // Apply the persisted theme before first paint to avoid a flash of the wrong theme.
+      (function () {
+        try {
+          var raw = localStorage.getItem("fh.theme");
+          var theme = raw ? JSON.parse(raw) : null;
+          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          var mode = theme && theme.mode ? theme.mode : "system";
+          var dark = mode === "dark" || (mode === "system" && prefersDark);
+          var root = document.documentElement;
+          root.classList.add(dark ? "dark-mode" : "light-mode");
+          root.dataset.themeMode = mode;
+          if (theme && theme.accent) root.dataset.accent = theme.accent;
+          if (theme && theme.density) root.dataset.density = theme.density;
+          if (theme && theme.radius) root.dataset.radius = theme.radius;
+        } catch (error) {
+          document.documentElement.classList.add("light-mode");
+        }
+      })();
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="boot-splash" role="status" aria-live="polite">
+        <div class="boot-splash__spinner" aria-hidden="true"></div>
+        <p>فریلنس‌هاب در حال بارگذاری است…</p>
+      </div>
+    </div>
+    <noscript>برای استفاده از این برنامه باید جاوااسکریپت فعال باشد.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

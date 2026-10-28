@@ -1,194 +1,566 @@
-@import url("/fonts.css");
+@font-face {
+  font-family: "Vazir";
+  font-style: normal;
+  font-weight: 400;
+  src: url("/fonts/Vazirmatn-Regular.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazir";
+  font-style: normal;
+  font-weight: 700;
+  src: url("/fonts/Vazirmatn-Bold.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazir";
+  font-style: normal;
+  font-weight: 900;
+  src: url("/fonts/Vazirmatn-Black.woff2") format("woff2");
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================================================
+   Design tokens
+   --------------------------------------------------------------------------
+   Colours are stored as space separated RGB channels so Tailwind's
+   `rgb(var(--token) / <alpha>)` syntax keeps working. Everything the user can
+   personalise (accent, radius, density, contrast) is a token override, never a
+   code change — see src/store/theme.
+   ========================================================================== */
 @layer base {
   :root {
-    &,
-    &.light-mode {
-      --background-app-rgb: 255, 255, 255;
-      --color-primary-900: 74, 109, 255;
-      --color-primary-800: 92, 124, 255;
-      --color-primary-700: 110, 138, 255;
-      --color-primary-600: 128, 153, 255;
-      --color-primary-500: 146, 167, 255;
-      --color-primary-400: 164, 182, 255;
-      --color-primary-300: 183, 197, 255;
-      --color-primary-200: 201, 211, 255;
-      --color-primary-100: 219, 226, 255;
-      --color-primary-50: 228, 233, 255;
-      --color-secondary-900: 17, 24, 39;
-      --color-secondary-800: 31, 41, 55;
-      --color-secondary-700: 55, 65, 81;
-      --color-secondary-600: 75, 85, 99;
-      --color-secondary-500: 107, 114, 128;
-      --color-secondary-400: 156, 163, 175;
-      --color-secondary-300: 209, 213, 219;
-      --color-secondary-200: 229, 231, 235;
-      --color-secondary-100: 243, 244, 246;
-      --color-secondary-50: 249, 250, 251;
-      --color-secondary-0: 255, 255, 255;
-      --color-success: 0, 192, 115;
-      --color-warning: 255, 153, 0;
-      --color-error: 255, 71, 87;
-      --color-red-500: 239, 68, 68;
-      --color-red-300: 252, 165, 165;
+    --color-canvas: 246 247 251;
+    --color-surface: 255 255 255;
+    --color-surface-raised: 255 255 255;
+    --color-surface-sunken: 240 242 248;
+    --color-line: 226 230 238;
+    --color-line-strong: 202 210 224;
+    --color-ink: 17 24 39;
+    --color-ink-soft: 71 84 103;
+    --color-ink-muted: 122 133 152;
+    --color-ink-inverted: 255 255 255;
+    --color-shadow: 15 23 42;
+
+    --color-success: 5 168 104;
+    --color-warning: 217 131 0;
+    --color-danger: 224 60 78;
+    --color-info: 26 124 214;
+
+    --color-accent-500: 124 92 255;
+    --color-accent-600: 105 72 240;
+
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-2xl: 1.75rem;
+
+    --ring-width: 3px;
+    --header-height: 4.25rem;
+  }
+
+  :root,
+  .light-mode {
+    --color-primary-0: 255 255 255;
+    --color-primary-50: 236 240 255;
+    --color-primary-100: 219 226 255;
+    --color-primary-200: 198 209 255;
+    --color-primary-300: 172 189 255;
+    --color-primary-400: 141 164 255;
+    --color-primary-500: 110 138 255;
+    --color-primary-600: 88 117 245;
+    --color-primary-700: 71 97 214;
+    --color-primary-800: 57 78 176;
+    --color-primary-900: 26 43 109;
+
+    --color-accent-0: 255 255 255;
+    --color-accent-50: 245 243 255;
+    --color-accent-100: 237 233 254;
+    --color-accent-200: 221 214 254;
+    --color-accent-300: 196 181 253;
+    --color-accent-400: 167 139 250;
+    --color-accent-500: 124 92 255;
+    --color-accent-600: 105 72 240;
+    --color-accent-700: 88 56 220;
+    --color-accent-800: 71 42 180;
+    --color-accent-900: 46 24 120;
+  }
+
+  .dark-mode {
+    --color-canvas: 10 14 23;
+    --color-surface: 19 26 41;
+    --color-surface-raised: 26 35 54;
+    --color-surface-sunken: 14 19 31;
+    --color-line: 38 49 70;
+    --color-line-strong: 58 72 99;
+    --color-ink: 241 244 250;
+    --color-ink-soft: 191 200 216;
+    --color-ink-muted: 145 157 178;
+    --color-ink-inverted: 12 17 28;
+    --color-shadow: 0 0 0;
+
+    --color-success: 45 200 143;
+    --color-warning: 245 176 65;
+    --color-danger: 255 118 134;
+    --color-info: 96 176 255;
+
+    --color-primary-0: 15 20 35;
+    --color-primary-50: 26 34 64;
+    --color-primary-100: 32 43 84;
+    --color-primary-200: 43 57 112;
+    --color-primary-300: 62 82 158;
+    --color-primary-400: 96 120 214;
+    --color-primary-500: 128 152 255;
+    --color-primary-600: 150 170 255;
+    --color-primary-700: 176 191 255;
+    --color-primary-800: 203 213 255;
+    --color-primary-900: 226 232 255;
+
+    --color-accent-0: 18 15 36;
+    --color-accent-50: 28 22 56;
+    --color-accent-100: 38 29 80;
+    --color-accent-200: 51 39 110;
+    --color-accent-300: 73 54 150;
+    --color-accent-400: 102 75 210;
+    --color-accent-500: 139 108 255;
+    --color-accent-600: 162 135 255;
+    --color-accent-700: 184 163 255;
+    --color-accent-800: 210 196 255;
+    --color-accent-900: 235 230 255;
+  }
+
+  /* ---- Accent presets (theme studio) ---- */
+  html[data-accent="indigo"] {
+    --color-primary-500: 110 138 255;
+    --color-primary-600: 88 117 245;
+    --color-primary-700: 71 97 214;
+    --color-primary-900: 26 43 109;
+  }
+  html[data-accent="emerald"] {
+    --color-primary-100: 209 250 233;
+    --color-primary-200: 167 243 208;
+    --color-primary-300: 110 231 183;
+    --color-primary-400: 52 211 153;
+    --color-primary-500: 16 185 129;
+    --color-primary-600: 5 150 105;
+    --color-primary-700: 4 120 87;
+    --color-primary-800: 6 95 70;
+    --color-primary-900: 6 78 59;
+  }
+  html[data-accent="rose"] {
+    --color-primary-100: 255 228 230;
+    --color-primary-200: 254 205 211;
+    --color-primary-300: 253 164 175;
+    --color-primary-400: 251 113 133;
+    --color-primary-500: 244 63 94;
+    --color-primary-600: 225 29 72;
+    --color-primary-700: 190 18 60;
+    --color-primary-800: 159 18 57;
+    --color-primary-900: 136 19 55;
+  }
+  html[data-accent="amber"] {
+    --color-primary-100: 254 243 199;
+    --color-primary-200: 253 230 138;
+    --color-primary-300: 252 211 77;
+    --color-primary-400: 251 191 36;
+    --color-primary-500: 245 158 11;
+    --color-primary-600: 217 119 6;
+    --color-primary-700: 180 83 9;
+    --color-primary-800: 146 64 14;
+    --color-primary-900: 120 53 15;
+  }
+  html[data-accent="violet"] {
+    --color-primary-100: 237 233 254;
+    --color-primary-200: 221 214 254;
+    --color-primary-300: 196 181 253;
+    --color-primary-400: 167 139 250;
+    --color-primary-500: 139 92 246;
+    --color-primary-600: 124 58 237;
+    --color-primary-700: 109 40 217;
+    --color-primary-800: 91 33 182;
+    --color-primary-900: 76 29 149;
+  }
+  html[data-accent="cyan"] {
+    --color-primary-100: 207 250 254;
+    --color-primary-200: 165 243 252;
+    --color-primary-300: 103 232 249;
+    --color-primary-400: 34 211 238;
+    --color-primary-500: 6 182 212;
+    --color-primary-600: 8 145 178;
+    --color-primary-700: 14 116 144;
+    --color-primary-800: 21 94 117;
+    --color-primary-900: 22 78 99;
+  }
+
+  /* ---- Radius presets ---- */
+  html[data-radius="sharp"] {
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 0.75rem;
+    --radius-2xl: 1rem;
+  }
+  html[data-radius="soft"] {
+    --radius-md: 1rem;
+    --radius-lg: 1.25rem;
+    --radius-xl: 1.75rem;
+    --radius-2xl: 2.25rem;
+  }
+
+  /* ---- Density: the whole layout is rem based, so scaling the root font
+         size scales spacing, radii and type consistently. ---- */
+  html[data-density="compact"] {
+    font-size: 14px;
+  }
+  html[data-density="cozy"] {
+    font-size: 16px;
+  }
+  html[data-density="spacious"] {
+    font-size: 17.5px;
+  }
+
+  /* ---- Accessibility: high contrast + reduced motion ---- */
+  html[data-contrast="high"] {
+    --color-line: 90 104 128;
+    --color-line-strong: 60 72 94;
+    --color-ink-muted: 60 72 94;
+    --ring-width: 4px;
+  }
+  html.dark-mode[data-contrast="high"] {
+    --color-line: 150 165 190;
+    --color-line-strong: 190 202 224;
+    --color-ink-muted: 205 214 230;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
     }
-    &.dark-mode {
-      --color-secondary-900: 249, 250, 251;
-      --color-secondary-800: 243, 244, 246;
-      --color-secondary-700: 229, 231, 235;
-      --color-secondary-600: 209, 213, 219;
-      --color-secondary-500: 156, 163, 175;
-      --color-secondary-400: 107, 114, 128;
-      --color-secondary-300: 75, 85, 99;
-      --color-secondary-200: 55, 65, 81;
-      --color-secondary-100: 31, 41, 55;
-      --color-secondary-50: 17, 24, 39;
-      --color-secondary-0: 24, 33, 47;
-      --color-primary-300: 183, 197, 255, 0.3;
-      --backdrop-color: 0, 0, 0;
-    }
+  }
+
+  html[data-motion="reduced"] *,
+  html[data-motion="reduced"] *::before,
+  html[data-motion="reduced"] *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-.rti--container {
-  background-color: rgb(var(--color-secondary-100));
-  --rti-radius: 0.375rem;
-  --rti-s: 0.5rem;
-  --rti-tag: #edf2f7;
-  --rti-tag-remove: #e53e3e;
-  border: none;
-}
-.rti--container .rti--input {
-  background-color: rgb(var(--color-secondary-200));
-  color: rgb(var(--color-secondary-800));
-  padding: 0.3rem 1rem;
-  border-radius: 0.5rem;
+/* ========================================================================== */
+@layer base {
+  * {
+    box-sizing: border-box;
+    @apply border-line;
+  }
+
+  html,
+  body {
+    padding: 0;
+    margin: 0;
+    min-height: 100%;
+    font-family: "Vazir", Tahoma, Arial, sans-serif;
+    background-color: rgb(var(--color-canvas));
+    color: rgb(var(--color-ink));
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 var(--ring-width) rgb(var(--color-primary-500) / 0.45);
+    border-radius: var(--radius-md);
+  }
+
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+  ::selection {
+    background-color: rgb(var(--color-primary-500) / 0.25);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--color-line-strong));
+    border-radius: 9999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(var(--color-ink-muted));
+  }
+
+  table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
+  }
 }
 
-.rti--tag {
-  background-color: rgb(var(--color-secondary-500));
-  color: rgb(var(--color-secondary-100));
-}
-.rti--tag button {
-  padding: 0.25rem 0.5rem 0;
+/* ========================================================================== */
+@layer components {
+  .card {
+    @apply rounded-card border border-line bg-surface shadow-card;
+  }
+
+  .card--interactive {
+    @apply transition-all duration-200 ease-spring hover:-translate-y-0.5 hover:shadow-pop;
+  }
+
+  .panel-title {
+    @apply text-sm font-bold text-ink-soft;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold
+      transition-all duration-200 ease-spring disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn--primary {
+    @apply bg-primary-600 text-white shadow-sm hover:bg-primary-700 active:scale-[0.98];
+  }
+  .btn--secondary {
+    @apply bg-surface-sunken text-ink hover:bg-line;
+  }
+  .btn--outline {
+    @apply border border-line-strong bg-transparent text-ink hover:bg-surface-sunken;
+  }
+  .btn--ghost {
+    @apply bg-transparent text-ink-soft hover:bg-surface-sunken hover:text-ink;
+  }
+  .btn--danger {
+    @apply bg-danger/10 text-danger hover:bg-danger hover:text-white;
+  }
+  .btn--success {
+    @apply bg-success/10 text-success hover:bg-success hover:text-white;
+  }
+  .btn--sm {
+    @apply px-3 py-1.5 text-xs;
+  }
+  .btn--icon {
+    @apply h-9 w-9 rounded-lg p-0;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-bold;
+  }
+  .badge--primary {
+    @apply bg-primary-600 text-white;
+  }
+  .badge--neutral {
+    @apply bg-surface-sunken text-ink-soft;
+  }
+  .badge--success {
+    @apply bg-success/10 text-success;
+  }
+  .badge--warning {
+    @apply bg-warning/20 text-warning;
+  }
+  .badge--danger {
+    @apply bg-danger/10 text-danger;
+  }
+  .badge--info {
+    @apply bg-info/10 text-info;
+  }
+
+  .field-label {
+    @apply mb-1.5 block text-sm font-bold text-ink-soft;
+  }
+  .field-input {
+    @apply w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-sm text-ink
+      placeholder:text-ink-muted transition-all duration-200
+      hover:border-line-strong focus:border-primary-500 focus:bg-surface focus:outline-none
+      focus:ring-2 focus:ring-primary-500/25 disabled:opacity-60;
+  }
+  .field-error {
+    @apply mt-1.5 block text-xs font-bold text-danger;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full bg-surface-sunken px-2.5 py-1 text-xs font-bold text-ink-soft;
+  }
+
+  .table-shell {
+    @apply w-full overflow-x-auto rounded-card border border-line bg-surface;
+  }
+  .table-shell table th {
+    @apply bg-surface-sunken px-4 py-3 text-start text-xs font-bold text-ink-muted;
+  }
+  .table-shell table td {
+    @apply border-t border-line px-4 py-3 text-start text-sm text-ink-soft align-middle;
+  }
+  .table-shell table tbody tr {
+    @apply transition-colors duration-150 hover:bg-surface-sunken/70;
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden rounded-lg bg-surface-sunken;
+  }
+  .skeleton::after {
+    @apply absolute inset-0 animate-shimmer bg-gradient-to-l from-transparent via-white/40 to-transparent;
+    content: "";
+  }
+
+  .nav-link {
+    @apply relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-bold text-ink-soft
+      transition-all duration-200 hover:bg-surface-sunken hover:text-ink;
+  }
+  .nav-link--active {
+    @apply bg-primary-600 text-white shadow-sm hover:bg-primary-700 hover:text-white;
+  }
+
+  .stat-card {
+    @apply flex items-start justify-between gap-4 rounded-card border border-line bg-surface p-4 shadow-card;
+  }
+
+  .scroll-area {
+    @apply overflow-y-auto overscroll-contain;
+  }
+
+  /* Persian text renders nicer with slightly looser leading. */
+  .prose-fa {
+    @apply leading-8;
+  }
 }
 
 @layer utilities {
-  .scrollbar {
-    direction: ltr;
+  .sr-only-focusable:not(:focus):not(:focus-within) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
-  .flipped {
-    direction: rtl;
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .grid-auto-fit {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  }
+
+  .grid-auto-fill {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
-@layer components {
-  .textField__input {
-    @apply w-full py-3 px-4 rounded-xl text-secondary-900 border border-secondary-100 bg-secondary-100 hover:border-primary-500 focus:border-primary-500 focus:bg-secondary-0 transition-all duration-300 ease-out focus:shadow-lg focus:shadow-primary-200 dark:focus:shadow-secondary-200;
-  }
-  .btn {
-    @apply px-3 py-1 font-bold rounded-xl transition-all duration-200;
-  }
-  .btn--primary {
-    @apply px-4 py-3 bg-primary-900 text-white hover:bg-primary-800 shadow-lg shadow-primary-300;
-  }
-  .btn--secondary {
-    @apply bg-secondary-600 text-secondary-100;
-  }
-  .btn--outline {
-    @apply border border-secondary-700 text-secondary-700;
-  }
-  .btn--danger {
-    @apply border border-rose-700 text-rose-700 hover:bg-rose-700 hover:text-white hover:shadow-lg hover:shadow-rose-200;
-  }
-  .badge {
-    @apply inline-block whitespace-nowrap rounded-xl px-2 py-0.5;
-  }
-  .badge--primary {
-    @apply bg-primary-900 text-white;
-  }
-  .badge--secondary {
-    @apply bg-secondary-200 text-secondary-600;
-  }
-  .badge--success {
-    @apply bg-green-500 text-white;
-  }
-  .badge--danger {
-    @apply bg-red-500 text-white;
+/* ========================================================================== */
+/* Boot splash (visible before React hydrates)                                */
+.boot-splash {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1rem;
+  font-family: Vazir, Tahoma, Arial, sans-serif;
+  color: #475467;
+}
+.boot-splash__spinner {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  border: 3px solid rgba(110, 138, 255, 0.25);
+  border-top-color: #4a6dff;
+  animation: boot-spin 0.8s linear infinite;
+}
+@keyframes boot-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-html,
-body {
-  padding: 0;
-  margin: 0;
-  font-family: "Vazir", Tahoma, Arial, sans-serif;
-  min-height: 100vh;
-  user-select: none;
-  background-color: rgb(var(--color-secondary-0));
+/* Third-party widget theming -------------------------------------------------
+   react-tag-input-component and react-multi-date-picker both accept CSS vars. */
+.rti--container {
+  background-color: rgb(var(--color-surface-sunken));
+  --rti-radius: var(--radius-lg);
+  --rti-s: 0.5rem;
+  --rti-main: rgb(var(--color-primary-500));
+  border: 1px solid rgb(var(--color-line));
+  padding: 0.5rem;
+}
+.rti--container:focus-within {
+  border-color: rgb(var(--color-primary-500));
+}
+.rti--container .rti--input {
+  background-color: transparent;
+  color: rgb(var(--color-ink));
+  padding: 0.25rem 0.5rem;
+}
+.rti--tag {
+  background-color: rgb(var(--color-primary-500) / 0.15);
+  color: rgb(var(--color-primary-700));
+}
+.rti--tag button {
+  color: inherit;
 }
 
-* {
-  box-sizing: border-box;
-  scroll-behavior: smooth;
-  outline: none;
-  padding: 0;
-  margin: 0;
+.rmdp-container {
+  width: 100%;
 }
-
-button {
-  cursor: pointer;
-  outline: none;
-}
-button:disabled {
-  cursor: default;
-  background-color: rgb(var(--color-secondary-100), 0.5);
-  pointer-events: none;
-  box-shadow: none;
-}
-
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
-}
-
-input[type="number"] {
-  -moz-appearance: textfield; /* Firefox */
-}
-
-/* TABLE */
-
-table {
-  border-collapse: collapse;
-  border-spacing: 0;
+.rmdp-input {
   width: 100%;
 }
 
-table .title-row {
-  background-color: rgb(var(--color-secondary-100));
-}
-
-table td,
-table th {
-  border-bottom: 1px solid rgb(var(--color-secondary-200));
-  text-align: right;
-  white-space: nowrap;
-}
-
-table th {
-  padding: 0.6rem 1rem;
-  color: rgb(var(--color-secondary-600));
-  font-size: 0.9rem;
-}
-
-table td {
-  font-size: 0.85rem;
-  padding: 1rem 1rem;
-  color: rgb(var(--color-secondary-600));
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+  .card,
+  .table-shell {
+    border-color: #cbd5e1 !important;
+    box-shadow: none !important;
+  }
 }

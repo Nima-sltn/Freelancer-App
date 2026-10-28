@@ -1,0 +1,28 @@
+{
+  "name": "فریلنس‌هاب | FreelanceHub",
+  "short_name": "FreelanceHub",
+  "description": "پلتفرم مدیریت پروژه، پیشنهاد قیمت و همکاری میان کارفرما، فریلنسر و ادمین",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#4a6dff",
+  "lang": "fa",
+  "dir": "rtl",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

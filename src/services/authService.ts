@@ -1,47 +1,30 @@
-import http from "./httpService";
-import type { User, OtpResponse, AuthResponse } from "../types";
+import { http } from "@/lib/http";
+import type { AuthResponse, CompleteProfileData, MessageResponse, OtpResponse, User } from "@/types";
 
-export function getOtp(data: { phoneNumber: string }): Promise<OtpResponse> {
-  return http.post("/user/get-otp", data).then(({ data }) => data.data);
-}
+/**
+ * Authentication endpoints.
+ *
+ * Every function is a thin, fully typed wrapper: the envelope unwrapping,
+ * cookie handling, refresh-token dance and error normalisation all live in
+ * `@/lib/http`, so there is nothing to remember here beyond the URL.
+ */
+export const authService = {
+  getOtp: (data: { phoneNumber: string }): Promise<OtpResponse> =>
+    http.post<OtpResponse>("/user/get-otp", data),
 
-export function checkOtp(data: {
-  phoneNumber: string;
-  otp: string;
-}): Promise<AuthResponse> {
-  return http.post("/user/check-otp", data).then(({ data }) => data.data);
-}
+  checkOtp: (data: { phoneNumber: string; otp: string }): Promise<AuthResponse> =>
+    http.post<AuthResponse>("/user/check-otp", data, { _skipAuthRefresh: true }),
 
-export function completeProfile(data: {
-  name: string;
-  email: string;
-  role: string;
-}): Promise<AuthResponse> {
-  return http
-    .post("/user/complete-profile", data)
-    .then(({ data }) => data.data);
-}
+  completeProfile: (data: CompleteProfileData): Promise<AuthResponse> =>
+    http.post<AuthResponse>("/user/complete-profile", data),
 
-export function getUser(): Promise<{ user: User }> {
-  return http.get("/user/profile").then(({ data }) => data.data);
-}
+  getProfile: (): Promise<{ user: User }> => http.get<{ user: User }>("/user/profile"),
 
-export function logoutApi(): Promise<{ message: string }> {
-  return http.post("/user/logout").then(({ data }) => data.data);
-}
+  updateProfile: (data: Partial<User>): Promise<MessageResponse> =>
+    http.patch<MessageResponse>("/user/update", data),
 
-export function getUsersApi(): Promise<{ users: User[] }> {
-  return http.get("/admin/user/list").then(({ data }) => data.data);
-}
+  logout: (): Promise<MessageResponse> => http.post<MessageResponse>("/user/logout"),
+};
 
-export function changeUserStatusApi({
-  userId,
-  data,
-}: {
-  userId: string;
-  data: { status: number };
-}): Promise<{ message: string }> {
-  return http
-    .patch(`/admin/user/verify/${userId}`, data)
-    .then(({ data }) => data.data);
-}
+export const { getOtp, checkOtp, completeProfile, logout } = authService;
+export default authService;
