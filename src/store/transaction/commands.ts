@@ -43,7 +43,7 @@ export function command<K extends CommandName>(name: K, args: CommandMap[K]): Co
 export function isReplayable(descriptor: unknown): descriptor is CommandDescriptor {
   if (!descriptor || typeof descriptor !== "object") return false;
   const { name } = descriptor as { name?: unknown };
-  return typeof name === "string" && Object.prototype.hasOwnProperty.call(EXECUTORS, name);
+  return typeof name === "string" && Object.hasOwn(EXECUTORS, name);
 }
 
 /**

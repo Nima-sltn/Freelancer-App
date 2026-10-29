@@ -43,27 +43,41 @@ const CommandContext = createContext<CommandContextValue | undefined>(undefined)
  * new action anywhere in the app makes it globally reachable with Ctrl/⌘+K
  * without touching the palette component.
  */
-export function CommandProvider({ children }: { children: ReactNode }) {
+function addCommandsToRegistry(
+  current: Record<string, Command>,
+  commands: readonly Command[]
+): Record<string, Command> {
+  const next = { ...current };
+  commands.forEach((command) => {
+    next[command.id] = command;
+  });
+  return next;
+}
+
+function removeCommandsFromRegistry(
+  current: Record<string, Command>,
+  commands: readonly Command[]
+): Record<string, Command> {
+  const next = { ...current };
+  commands.forEach((command) => {
+    delete next[command.id];
+  });
+  return next;
+}
+
+export interface CommandProviderProps {
+  readonly children: ReactNode;
+}
+
+export function CommandProvider({ children }: Readonly<CommandProviderProps>) {
   const [isOpen, setIsOpen] = useState(false);
   const [registry, setRegistry] = useState<Record<string, Command>>({});
 
   const registerCommands = useCallback((commands: Command[]) => {
-    setRegistry((current) => {
-      const next = { ...current };
-      commands.forEach((command) => {
-        next[command.id] = command;
-      });
-      return next;
-    });
+    setRegistry((current) => addCommandsToRegistry(current, commands));
 
     return () => {
-      setRegistry((current) => {
-        const next = { ...current };
-        commands.forEach((command) => {
-          delete next[command.id];
-        });
-        return next;
-      });
+      setRegistry((current) => removeCommandsFromRegistry(current, commands));
     };
   }, []);
 

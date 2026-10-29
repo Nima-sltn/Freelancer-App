@@ -21,6 +21,12 @@ interface TimelineRow {
   isOverdue: boolean;
 }
 
+function getTimelineBarBg(isOverdue: boolean, status: Project["status"]): string {
+  if (isOverdue) return "bg-danger";
+  if (status === "CLOSED") return "bg-info";
+  return "bg-primary-600";
+}
+
 /**
  * Project timeline (Gantt-lite).
  *
@@ -30,7 +36,7 @@ interface TimelineRow {
  * so they land in the user's own calendar, a small cross-domain bridge between
  * the app and the user's tooling.
  */
-export function ProjectTimeline({ projects }: { projects: Project[] }) {
+export function ProjectTimeline({ projects }: Readonly<{ readonly projects: readonly Project[] }>) {
   const { t } = useT();
 
   const { rows, windowStart } = useMemo(() => {
@@ -120,11 +126,7 @@ export function ProjectTimeline({ projects }: { projects: Project[] }) {
                         <span
                           className={cx(
                             "absolute top-0 h-6 rounded-md px-2 text-[0.65rem] font-black text-white",
-                            row.isOverdue
-                              ? "bg-danger"
-                              : row.project.status === "CLOSED"
-                                ? "bg-info"
-                                : "bg-primary-600"
+                            getTimelineBarBg(row.isOverdue, row.project.status)
                           )}
                           style={{
                             insetInlineStart: `${(row.startOffset / WINDOW_DAYS) * 100}%`,

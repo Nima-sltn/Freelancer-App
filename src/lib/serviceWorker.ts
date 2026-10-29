@@ -147,6 +147,14 @@ export async function registerBackgroundSync(tag: string = "offline-sync"): Prom
  * Disabled in development by default (a stale cache while coding is worse than no cache)
  * and behind `VITE_ENABLE_SERVICE_WORKER` so deployments can opt out.
  */
+function trackWorkerState(registration: ServiceWorkerRegistration, worker: ServiceWorker): void {
+  worker.addEventListener("statechange", () => {
+    if (worker.state === "installed" && navigator.serviceWorker.controller) {
+      updateListeners.forEach((cb) => cb(registration));
+    }
+  });
+}
+
 export function registerServiceWorker(): void {
   if (!env.flags.serviceWorker) return;
   if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
@@ -163,13 +171,9 @@ export function registerServiceWorker(): void {
         // Listen for new worker installation
         registration.addEventListener("updatefound", () => {
           const newWorker = registration.installing;
-          if (!newWorker) return;
-
-          newWorker.addEventListener("statechange", () => {
-            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-              updateListeners.forEach((cb) => cb(registration));
-            }
-          });
+          if (newWorker) {
+            trackWorkerState(registration, newWorker);
+          }
         });
       })
       .catch((error) => {

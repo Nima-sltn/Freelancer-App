@@ -36,7 +36,7 @@ export function useGlobalHotkeys(): void {
         if (pendingCount > 0) {
           toast(t("tx.undoLast"), { icon: "↩️" });
         }
-        void undo();
+        undo();
       },
     },
     {

@@ -6,6 +6,12 @@ import { useT } from "@/store/i18n";
 import { formatCurrency, formatPercent } from "@/lib/format/numbers";
 import { simulateProposal, netPayout } from "@/entities/proposal/matching";
 
+function getVerdictTone(verdict: "strong" | "ok" | "weak"): "success" | "warning" | "danger" {
+  if (verdict === "strong") return "success";
+  if (verdict === "ok") return "warning";
+  return "danger";
+}
+
 /**
  * "What-if" bid simulator.
  *
@@ -19,12 +25,12 @@ export function PriceSimulator({
   competitorCount = 0,
   onChange,
   defaultDuration,
-}: {
-  budget: number;
-  competitorCount?: number;
-  onChange?: (values: { price: number; duration: number }) => void;
-  defaultDuration?: number;
-}) {
+}: Readonly<{
+  readonly budget: number;
+  readonly competitorCount?: number;
+  readonly onChange?: (values: { price: number; duration: number }) => void;
+  readonly defaultDuration?: number;
+}>) {
   const { t } = useT();
   const [price, setPrice] = useState(Math.round(budget * 0.85));
   const [duration, setDuration] = useState(defaultDuration ?? 30);
@@ -35,8 +41,7 @@ export function PriceSimulator({
   );
   const payout = useMemo(() => netPayout(price), [price]);
 
-  const verdictTone =
-    result.verdict === "strong" ? "success" : result.verdict === "ok" ? "warning" : "danger";
+  const verdictTone = getVerdictTone(result.verdict);
 
   const update = (next: { price?: number; duration?: number }) => {
     const price2 = next.price ?? price;
@@ -109,7 +114,7 @@ export function PriceSimulator({
           </p>
           <ProgressBar
             value={result.probability * 100}
-            tone={verdictTone === "success" ? "success" : verdictTone === "warning" ? "warning" : "danger"}
+            tone={verdictTone}
             className="mt-1.5"
           />
         </div>

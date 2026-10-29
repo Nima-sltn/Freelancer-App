@@ -1,35 +1,149 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { Card, CardHeader, CardContent } from "@/components/ui/Card";
-import { Badge, ProjectStatusBadge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import { Modal } from "@/components/ui/Modal";
-import { Callout } from "@/components/ui/Callout";
-import { ProgressRing } from "@/components/ui/Progress";
-import { ErrorState } from "@/components/ui/EmptyState";
-import { SkeletonText } from "@/components/ui/Skeleton";
-import { Timeline } from "@/components/ui/Timeline";
-import { IconCalendar, IconMoney, IconUsers } from "@/components/ui/icons";
 import { useUser } from "@/features/auth";
 import { useProject } from "@/features/projects/useProjects";
 import { useProposals } from "@/features/proposals/useProposals";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useT } from "@/store/i18n";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge, ProjectStatusBadge } from "@/components/ui/Badge";
+import { Callout } from "@/components/ui/Callout";
+import { Modal } from "@/components/ui/Modal";
+import { ProgressRing } from "@/components/ui/Progress";
+import { Timeline } from "@/components/ui/Timeline";
+import { ErrorState } from "@/components/ui/EmptyState";
+import { SkeletonText } from "@/components/ui/Skeleton";
 import { ProposalsTable } from "@/features/proposals/ProposalsTable";
 import { ProposalForm } from "@/features/proposals/ProposalForm";
-import { auditViewModel } from "@/features/projects/projectHistory";
 import { computeMatchScore } from "@/entities/proposal/matching";
-import { useT } from "@/store/i18n";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { auditViewModel } from "@/features/projects/projectHistory";
 import { formatCurrency, formatNumber } from "@/lib/format/numbers";
 import { formatDate, formatRelative, getDeadlineInfo } from "@/lib/format/dates";
+import type { MatchScore, Proposal } from "@/types";
+
+function IconCalendar(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
+function IconMoney() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+
+function IconUsers() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+  );
+}
+
+function getDeadlineClassName(tone?: string): string {
+  if (tone === "danger") return "text-xs font-bold text-danger";
+  if (tone === "warning") return "text-xs font-bold text-warning";
+  return "text-xs text-ink-muted";
+}
+
+function getProposalStatusKey(status?: number): string {
+  if (status === 2) return "accepted";
+  if (status === 0) return "rejected";
+  return "pending";
+}
+
+function getTierBadgeTone(tier: string): "success" | "danger" | "info" {
+  if (tier === "excellent") return "success";
+  if (tier === "weak") return "danger";
+  return "info";
+}
+
+function getMatchRingTone(score: number): "success" | "info" | "warning" {
+  if (score >= 80) return "success";
+  if (score >= 60) return "info";
+  return "warning";
+}
+
+interface MatchCardProps {
+  readonly match: MatchScore;
+}
+
+function ProjectMatchCard({ match }: Readonly<MatchCardProps>) {
+  const { t } = useT();
+
+  return (
+    <Card>
+      <CardHeader
+        title={t("matching.title")}
+        description={t("matching.explain")}
+        actions={
+          <Badge tone={getTierBadgeTone(match.tier)}>
+            {t(`matching.tier.${match.tier}`)}
+          </Badge>
+        }
+      />
+      <CardContent>
+        <div className="flex items-center gap-5">
+          <ProgressRing
+            value={match.score}
+            tone={getMatchRingTone(match.score)}
+            label={`${t("matching.title")}: ${match.score}`}>
+            <span className="text-xl font-black text-ink tabular-nums">
+              {formatNumber(match.score)}
+            </span>
+          </ProgressRing>
+
+          <ul className="flex-1 space-y-2.5">
+            {match.factors.map((factor: MatchScore["factors"][number]) => (
+              <li key={factor.key} className="text-xs">
+                <div className="flex items-center justify-between gap-2 font-bold text-ink-soft">
+                  <span>{t(factor.labelKey)}</span>
+                  <span className="tabular-nums">{formatNumber(Math.round(factor.value))}</span>
+                </div>
+                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-sunken">
+                  <div
+                    className="h-full rounded-full bg-primary-600"
+                    style={{ width: `${factor.value}%` }}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface ProposalsSectionProps {
+  readonly proposals?: readonly (string | Proposal)[];
+}
+
+function ProjectProposalsSection({ proposals }: Readonly<ProposalsSectionProps>) {
+  const { t } = useT();
+
+  if (proposals && proposals.length > 0) {
+    return (
+      <ProposalsTable
+        proposals={proposals as Proposal[]}
+        canReview
+        emptyTitle={t("proposals.emptyTitle")}
+      />
+    );
+  }
+
+  return <Callout tone="neutral">{t("projects.proposalCount", { count: 0 })}</Callout>;
+}
 
 /**
- * Project detail.
- *
- * The richest page in the product, and the clearest example of the cross-domain
- * work: it combines the role-aware action set (apply / review / manage), the
- * explainable match score, the risk-screened proposal list and a derived project
- * history — all from the same cache entry.
+ * Project detail view.
  */
 function ProjectDetailPage() {
   const { t, locale } = useT();
@@ -72,8 +186,10 @@ function ProjectDetailPage() {
 
   const deadline = getDeadlineInfo(project.deadline);
   const myProposal = isFreelancer
-    ? proposalsQuery.proposals.find((proposal) => proposal.projectId === project._id)
+    ? proposalsQuery.proposals.find((proposal: Proposal) => proposal.projectId === project._id)
     : undefined;
+
+  const canApply = project.status === "OPEN" && !myProposal && user && project.owner?._id !== user._id;
 
   return (
     <div className="space-y-6">
@@ -89,7 +205,7 @@ function ProjectDetailPage() {
         actions={
           <>
             <ProjectStatusBadge status={project.status} />
-            {project.status === "OPEN" && !myProposal && user && project.owner?._id !== user._id ? (
+            {canApply ? (
               <Button onClick={() => setApplying(true)}>{t("proposals.create")}</Button>
             ) : null}
           </>
@@ -119,14 +235,7 @@ function ProjectDetailPage() {
                   <dd className="mt-1 text-lg font-black text-ink">
                     {formatDate(project.deadline)}
                   </dd>
-                  <dd
-                    className={
-                      deadline.tone === "danger"
-                        ? "text-xs font-bold text-danger"
-                        : deadline.tone === "warning"
-                          ? "text-xs font-bold text-warning"
-                          : "text-xs text-ink-muted"
-                    }>
+                  <dd className={getDeadlineClassName(deadline.tone)}>
                     {deadline.isOverdue
                       ? t("projects.overdue", { days: Math.abs(deadline.days) })
                       : t("projects.deadlineSoon", { days: deadline.days })}
@@ -147,66 +256,17 @@ function ProjectDetailPage() {
           {myProposal ? (
             <Callout tone="info" title={t("projects.yourProposal")}>
               {formatCurrency(myProposal.price)} · {myProposal.duration} {t("common.days")} ·{" "}
-              {t(`status.proposal.${myProposal.status === 2 ? "accepted" : myProposal.status === 0 ? "rejected" : "pending"}`)}
+              {t(`status.proposal.${getProposalStatusKey(myProposal.status)}`)}
             </Callout>
           ) : null}
 
           {isOwner || isAdmin ? (
-            project.proposals?.length ? (
-              <ProposalsTable
-                proposals={project.proposals}
-                canReview
-                emptyTitle={t("proposals.emptyTitle")}
-              />
-            ) : (
-              <Callout tone="neutral">{t("projects.proposalCount", { count: 0 })}</Callout>
-            )
+            <ProjectProposalsSection proposals={project.proposals} />
           ) : null}
         </div>
 
         <div className="space-y-6">
-          {match ? (
-            <Card>
-              <CardHeader
-                title={t("matching.title")}
-                description={t("matching.explain")}
-                actions={
-                  <Badge tone={match.tier === "excellent" ? "success" : match.tier === "weak" ? "danger" : "info"}>
-                    {t(`matching.tier.${match.tier}`)}
-                  </Badge>
-                }
-              />
-              <CardContent>
-                <div className="flex items-center gap-5">
-                  <ProgressRing
-                    value={match.score}
-                    tone={match.score >= 80 ? "success" : match.score >= 60 ? "info" : "warning"}
-                    label={`${t("matching.title")}: ${match.score}`}>
-                    <span className="text-xl font-black text-ink tabular-nums">
-                      {formatNumber(match.score)}
-                    </span>
-                  </ProgressRing>
-
-                  <ul className="flex-1 space-y-2.5">
-                    {match.factors.map((factor) => (
-                      <li key={factor.key} className="text-xs">
-                        <div className="flex items-center justify-between gap-2 font-bold text-ink-soft">
-                          <span>{t(factor.labelKey)}</span>
-                          <span className="tabular-nums">{formatNumber(Math.round(factor.value))}</span>
-                        </div>
-                        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-sunken">
-                          <div
-                            className="h-full rounded-full bg-primary-600"
-                            style={{ width: `${factor.value}%` }}
-                          />
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          ) : null}
+          {match ? <ProjectMatchCard match={match} /> : null}
 
           <Card>
             <CardHeader title={t("projects.history")} />

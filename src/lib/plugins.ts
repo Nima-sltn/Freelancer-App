@@ -32,8 +32,8 @@ export interface PluginDefinition {
 }
 
 export class PluginRegistry {
-  private plugins = new Map<string, PluginDefinition>();
-  private hookListeners = new Map<PluginHookName, Set<PluginHookHandler<any, any>>>();
+  private readonly plugins = new Map<string, PluginDefinition>();
+  private readonly hookListeners = new Map<PluginHookName, Set<PluginHookHandler<any, any>>>();
 
   constructor() {
     this.registerBuiltInPlugins();
@@ -89,7 +89,7 @@ export class PluginRegistry {
 
   disable(id: string): boolean {
     const plugin = this.plugins.get(id);
-    if (!plugin || !plugin.enabled) return false;
+    if (!plugin?.enabled) return false;
     plugin.enabled = false;
     if (plugin.hooks) {
       Object.entries(plugin.hooks).forEach(([hookName, handler]) => {

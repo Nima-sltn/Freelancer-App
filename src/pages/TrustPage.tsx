@@ -31,7 +31,7 @@ function TrustPage() {
     status: 0 | 1 | 2;
     previousStatus: 0 | 1 | 2;
   }) => {
-    void changeStatus(
+    changeStatus(
       decision.proposalId,
       decision.projectId,
       decision.status,

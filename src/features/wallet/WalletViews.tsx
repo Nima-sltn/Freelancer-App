@@ -30,7 +30,19 @@ function useLedgerSeries(entries: LedgerEntry[]) {
   return useMemo(() => ledgerSeries(entries), [entries]);
 }
 
-export function LedgerTable({ entries, isLoading }: { entries: LedgerEntry[]; isLoading?: boolean }) {
+function getEntryAmountClassName(kind: LedgerEntry["kind"]): string {
+  if (kind === "payout") return "font-bold text-success tabular-nums";
+  if (kind === "fee") return "font-bold text-danger tabular-nums";
+  return "font-bold text-ink tabular-nums";
+}
+
+function getEntryStatusTone(status: LedgerEntry["status"]): "success" | "warning" | "danger" {
+  if (status === "settled") return "success";
+  if (status === "pending") return "warning";
+  return "danger";
+}
+
+export function LedgerTable({ entries, isLoading }: Readonly<{ readonly entries: readonly LedgerEntry[]; readonly isLoading?: boolean }>) {
   const { t } = useT();
 
   const columns: Array<Column<LedgerEntry>> = [
@@ -51,14 +63,7 @@ export function LedgerTable({ entries, isLoading }: { entries: LedgerEntry[]; is
       header: t("field.amount"),
       sortable: true,
       render: (entry) => (
-        <span
-          className={
-            entry.kind === "payout"
-              ? "font-bold text-success tabular-nums"
-              : entry.kind === "fee"
-                ? "font-bold text-danger tabular-nums"
-                : "font-bold text-ink tabular-nums"
-          }>
+        <span className={getEntryAmountClassName(entry.kind)}>
           {entry.kind === "fee" ? "-" : ""}
           {formatCurrency(entry.amount)}
         </span>
@@ -68,8 +73,7 @@ export function LedgerTable({ entries, isLoading }: { entries: LedgerEntry[]; is
       key: "status",
       header: t("common.status"),
       render: (entry) => (
-        <Badge
-          tone={entry.status === "settled" ? "success" : entry.status === "pending" ? "warning" : "danger"}>
+        <Badge tone={getEntryStatusTone(entry.status)}>
           {t(`wallet.status.${entry.status}`)}
         </Badge>
       ),
@@ -97,10 +101,10 @@ export function LedgerTable({ entries, isLoading }: { entries: LedgerEntry[]; is
 export function WalletOverview({
   entries,
   isLoading,
-}: {
-  entries: LedgerEntry[];
-  isLoading?: boolean;
-}) {
+}: Readonly<{
+  readonly entries: LedgerEntry[];
+  readonly isLoading?: boolean;
+}>) {
   const { t } = useT();
   const series = useLedgerSeries(entries);
 

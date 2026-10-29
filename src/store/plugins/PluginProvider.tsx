@@ -4,6 +4,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useMemo,
   type ReactNode,
 } from "react";
 import {
@@ -14,23 +15,23 @@ import {
 } from "@/lib/plugins";
 
 interface PluginContextValue {
-  plugins: PluginDefinition[];
-  enablePlugin: (id: string) => void;
-  disablePlugin: (id: string) => void;
-  registerPlugin: (plugin: PluginDefinition) => void;
-  unregisterPlugin: (id: string) => void;
+  readonly plugins: readonly PluginDefinition[];
+  readonly enablePlugin: (id: string) => void;
+  readonly disablePlugin: (id: string) => void;
+  readonly registerPlugin: (plugin: PluginDefinition) => void;
+  readonly unregisterPlugin: (id: string) => void;
 }
 
 const PluginContext = createContext<PluginContextValue | null>(null);
 
 export interface PluginProviderProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 /**
  * React Context provider for the Plugin/Extension system.
  */
-export function PluginProvider({ children }: PluginProviderProps) {
+export function PluginProvider({ children }: Readonly<PluginProviderProps>) {
   const [plugins, setPlugins] = useState<PluginDefinition[]>(() =>
     pluginRegistry.getPlugins()
   );
@@ -71,16 +72,19 @@ export function PluginProvider({ children }: PluginProviderProps) {
     [refresh]
   );
 
+  const contextValue = useMemo(
+    () => ({
+      plugins,
+      enablePlugin,
+      disablePlugin,
+      registerPlugin,
+      unregisterPlugin,
+    }),
+    [plugins, enablePlugin, disablePlugin, registerPlugin, unregisterPlugin]
+  );
+
   return (
-    <PluginContext.Provider
-      value={{
-        plugins,
-        enablePlugin,
-        disablePlugin,
-        registerPlugin,
-        unregisterPlugin,
-      }}
-    >
+    <PluginContext.Provider value={contextValue}>
       {children}
     </PluginContext.Provider>
   );

@@ -41,10 +41,6 @@ export function filterProjects(projects: Project[], filters: ProjectFilters): Pr
 export function sortProjects(projects: Project[], sort?: string): Project[] {
   const list = [...projects];
   switch (sort) {
-    case "latest":
-      return list.sort(
-        (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()
-      );
     case "earliest":
       return list.sort(
         (a, b) => new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
@@ -57,6 +53,7 @@ export function sortProjects(projects: Project[], sort?: string): Project[] {
       return list.sort((a, b) => new Date(a.deadline).getTime() - new Date(b.deadline).getTime());
     case "proposals":
       return list.sort((a, b) => (b.proposals?.length ?? 0) - (a.proposals?.length ?? 0));
+    case "latest":
     default:
       return list.sort(
         (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime()

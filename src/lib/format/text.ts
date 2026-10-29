@@ -23,12 +23,12 @@ export function avatarColor(seed: string): string {
 }
 
 const ARABIC_TO_PERSIAN: Array<[RegExp, string]> = [
-  [/ي|ى/g, "ی"],
+  [/[يى]/g, "ی"],
   [/ك/g, "ک"],
   [/ة/g, "ه"],
   [/ۀ/g, "ه"],
   [/ؤ/g, "و"],
-  [/إ|أ|آ/g, "ا"],
+  [/[إأآ]/g, "ا"],
 ];
 
 /**
@@ -70,7 +70,13 @@ export function fuzzyScore(needle: string, haystack: string): number {
   for (let i = 0; i < target.length && queryIndex < query.length; i += 1) {
     if (target[i] === query[queryIndex]) {
       const isBoundary = i === 0 || /[\s\-_/.]/.test(target[i - 1]);
-      score += isBoundary ? 6 : lastMatch === i - 1 ? 4 : 2;
+      if (isBoundary) {
+        score += 6;
+      } else if (lastMatch === i - 1) {
+        score += 4;
+      } else {
+        score += 2;
+      }
       lastMatch = i;
       queryIndex += 1;
     }

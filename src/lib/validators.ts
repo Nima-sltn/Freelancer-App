@@ -28,8 +28,12 @@ export function isEmail(value: string): boolean {
 }
 
 export function isPositiveNumber(value: unknown): boolean {
-  const numeric = typeof value === "number" ? value : Number(toLatinDigits(String(value ?? "")));
-  return Number.isFinite(numeric) && numeric > 0;
+  if (typeof value === "number") return Number.isFinite(value) && value > 0;
+  if (typeof value === "string") {
+    const numeric = Number(toLatinDigits(value.trim()));
+    return Number.isFinite(numeric) && numeric > 0;
+  }
+  return false;
 }
 
 export function isFutureDate(value: string | Date): boolean {

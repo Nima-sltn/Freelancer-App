@@ -18,15 +18,15 @@ export function PageHeader({
   breadcrumb,
   icon,
   className,
-}: {
-  title: ReactNode;
-  description?: ReactNode;
-  actions?: ReactNode;
-  showBack?: boolean;
-  breadcrumb?: Array<{ label: string; to?: string }>;
-  icon?: ReactNode;
-  className?: string;
-}) {
+}: Readonly<{
+  readonly title: ReactNode;
+  readonly description?: ReactNode;
+  readonly actions?: ReactNode;
+  readonly showBack?: boolean;
+  readonly breadcrumb?: readonly { readonly label: string; readonly to?: string }[];
+  readonly icon?: ReactNode;
+  readonly className?: string;
+}>) {
   const moveBack = useMoveBack();
   const { t } = useT();
 
@@ -68,7 +68,7 @@ export function PageHeader({
   );
 }
 
-export function Breadcrumbs({ items }: { items: Array<{ label: string; to?: string }> }) {
+export function Breadcrumbs({ items }: Readonly<{ readonly items: readonly { readonly label: string; readonly to?: string }[] }>) {
   const { t } = useT();
   return (
     <nav aria-label={t("a11y.breadcrumb")}>

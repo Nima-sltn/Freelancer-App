@@ -30,11 +30,11 @@ export function ProjectForm({
   categories,
   projectToEdit,
   onClose,
-}: {
-  categories: CategoryOption[];
-  projectToEdit?: Project;
-  onClose: () => void;
-}) {
+}: Readonly<{
+  readonly categories: CategoryOption[];
+  readonly projectToEdit?: Project;
+  readonly onClose: () => void;
+}>) {
   const { t } = useT();
   const { createProject, updateProject, isBusy } = useProjectMutations();
   const isEdit = Boolean(projectToEdit?._id);
@@ -74,10 +74,10 @@ export function ProjectForm({
     }
 
     if (isEdit && projectToEdit) {
-      void updateProject(projectToEdit._id, payload, { onSuccess: onClose });
+      updateProject(projectToEdit._id, payload, { onSuccess: onClose });
       return;
     }
-    void createProject(payload, { onSuccess: onClose });
+    createProject(payload, { onSuccess: onClose });
   });
 
   return (

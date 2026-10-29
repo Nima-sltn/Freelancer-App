@@ -29,13 +29,13 @@ function ControlButton({
   children,
   className,
   badge,
-}: {
-  label: string;
-  onClick?: () => void;
-  children: React.ReactNode;
-  className?: string;
-  badge?: number;
-}) {
+}: Readonly<{
+  readonly label: string;
+  readonly onClick?: () => void;
+  readonly children: React.ReactNode;
+  readonly className?: string;
+  readonly badge?: number;
+}>) {
   return (
     <button
       type="button"
@@ -194,12 +194,12 @@ export function UserMenu({
   onLogout,
   logoutLabel,
   settingsPath,
-}: {
-  user: User;
-  onLogout: () => void;
-  logoutLabel: string;
-  settingsPath: string;
-}) {
+}: Readonly<{
+  readonly user: User;
+  readonly onLogout: () => void;
+  readonly logoutLabel: string;
+  readonly settingsPath: string;
+}>) {
   const { t } = useT();
 
   return (

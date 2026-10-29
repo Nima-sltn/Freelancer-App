@@ -14,10 +14,10 @@ import {
 } from "./HeaderControls";
 
 interface TopbarProps {
-  user: User;
-  onOpenMenu: () => void;
-  onLogout: () => void;
-  isLoadingUser?: boolean;
+  readonly user: User;
+  readonly onOpenMenu: () => void;
+  readonly onLogout: () => void;
+  readonly isLoadingUser?: boolean;
 }
 
 /**
@@ -25,7 +25,7 @@ interface TopbarProps {
  * appearance controls. Falls back to a skeleton while the session resolves so
  * the layout never shifts (the old version blurred the bar and left placeholders).
  */
-export function Topbar({ user, onOpenMenu, onLogout, isLoadingUser }: TopbarProps) {
+export function Topbar({ user, onOpenMenu, onLogout, isLoadingUser }: Readonly<TopbarProps>) {
   const { t } = useT();
 
   return (

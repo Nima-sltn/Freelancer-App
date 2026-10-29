@@ -170,9 +170,7 @@ const REVIEW_SEED = [
   "پیشنهاد می‌کنم؛ تسلط فنی بالا و پاسخ‌گویی سریع.",
 ];
 
-interface Rng {
-  (): number;
-}
+type Rng = () => number;
 
 /** Linear congruential generator — deterministic across runs and platforms. */
 function createRng(seed: number): Rng {
@@ -223,6 +221,34 @@ function daysAhead(now: Date, days: number): string {
   return date.toISOString();
 }
 
+
+const DEFAULT_BIOS: Record<User["role"], string> = {
+  FREELANCER: "فریلنسر با تجربهٔ اجرای پروژه‌های وب و محصول؛ علاقه‌مند به همکاری‌های بلندمدت.",
+  OWNER: "کارفرما و مدیر محصول در حال ساخت تیم‌های چابک برای پروژه‌های دیجیتال.",
+  ADMIN: "مدیر پلتفرم فریلنس‌هاب؛ مسئول تأیید کاربران و نظارت بر جریان کار.",
+};
+
+function rollUserStatus(roll: number): User["status"] {
+  if (roll > 0.75) return 1;
+  if (roll > 0.65) return 0;
+  return 2;
+}
+
+function determineProposalStatus(isWinner: boolean, roll: number): Proposal["status"] {
+  if (isWinner) return 2;
+  if (roll > 0.72) return 2;
+  if (roll > 0.5) return 1;
+  if (roll > 0.35) return 0;
+  return 1;
+}
+
+function determineDemoPipelineStatus(i: number): Proposal["status"] {
+  if (i % 4 === 0) return 2;
+  if (i % 3 === 0) return 1;
+  if (i % 5 === 0) return 0;
+  return 1;
+}
+
 const SKILL_POOL = [
   "React",
   "TypeScript",
@@ -242,19 +268,8 @@ const SKILL_POOL = [
  * Builds the full demo state. `now` is injectable so tests can pin the clock and
  * assert on derived analytics without flaking.
  */
-export function createDemoState(now: Date = new Date()): DemoState {
-  idCounter = 0;
-  const rng = createRng(20240517);
 
-  const categories: Category[] = CATEGORY_SEED.map((seed, index) => ({
-    _id: objectId(index),
-    title: seed.title,
-    englishTitle: seed.englishTitle,
-    icon: seed.icon,
-    description: `پروژه‌های دستهٔ ${seed.title}`,
-  }));
-
-  /* ------------------------------- users ------------------------------- */
+function seedUsers(now: Date, rng: Rng): User[] {
   const users: User[] = [];
 
   const makeUser = (config: {
@@ -270,18 +285,13 @@ export function createDemoState(now: Date = new Date()): DemoState {
   }): User => ({
     _id: objectId(500 + config.index),
     name: config.name,
-    email: `${config.phoneNumber}@freelancehub.demo`,
+    email: config.phoneNumber + "@freelancehub.demo",
     phoneNumber: config.phoneNumber,
     role: config.role,
     status: config.status,
     isActive: config.isActive,
     avatarUrl: undefined,
-    bio:
-      config.role === "FREELANCER"
-        ? "فریلنسر با تجربهٔ اجرای پروژه‌های وب و محصول؛ علاقه‌مند به همکاری‌های بلندمدت."
-        : config.role === "OWNER"
-          ? "کارفرما و مدیر محصول در حال ساخت تیم‌های چابک برای پروژه‌های دیجیتال."
-          : "مدیر پلتفرم فریلنس‌هاب؛ مسئول تأیید کاربران و نظارت بر جریان کار.",
+    bio: DEFAULT_BIOS[config.role],
     skills: config.skills ?? pickMany(rng, SKILL_POOL, intBetween(rng, 3, 6)),
     city: pick(rng, ["تهران", "اصفهان", "مشهد", "شیراز", "تبریز"]),
     hourlyRate: intBetween(rng, 4, 40) * 100_000,
@@ -303,9 +313,7 @@ export function createDemoState(now: Date = new Date()): DemoState {
       index: 1,
       rating: 4.9,
       completedProjects: 120,
-    })
-  );
-  users.push(
+    }),
     makeUser({
       name: "سارا محمدی",
       phoneNumber: "09120000002",
@@ -315,9 +323,7 @@ export function createDemoState(now: Date = new Date()): DemoState {
       index: 2,
       rating: 4.7,
       completedProjects: 63,
-    })
-  );
-  users.push(
+    }),
     makeUser({
       name: "امیرحسین کاظمی",
       phoneNumber: "09120000003",
@@ -327,9 +333,7 @@ export function createDemoState(now: Date = new Date()): DemoState {
       index: 3,
       rating: 4.8,
       completedProjects: 47,
-    })
-  );
-  users.push(
+    }),
     makeUser({
       name: "مریم رستمی",
       phoneNumber: "09120000004",
@@ -349,20 +353,27 @@ export function createDemoState(now: Date = new Date()): DemoState {
     const statusRoll = rng();
     users.push(
       makeUser({
-        name: `${first} ${last}`,
-        phoneNumber: `0912${String(1000000 + i * 37).slice(0, 7)}`,
+        name: first + " " + last,
+        phoneNumber: "0912" + String(1000000 + i * 37).slice(0, 7),
         role,
-        status: statusRoll > 0.75 ? 1 : statusRoll > 0.65 ? 0 : 2,
+        status: rollUserStatus(statusRoll),
         isActive: true,
         index: i,
       })
     );
   }
+  return users;
+}
 
+function seedProjectsAndProposals(
+  now: Date,
+  rng: Rng,
+  categories: Category[],
+  users: User[]
+): { projects: DemoProject[]; proposals: Proposal[] } {
   const owners = users.filter((user) => user.role === "OWNER" && user.status === 2);
   const freelancers = users.filter((user) => user.role === "FREELANCER" && user.status === 2);
 
-  /* ------------------------------ projects ----------------------------- */
   const projects: DemoProject[] = [];
   PROJECT_SEED.forEach(([title, description, titleEn, descriptionEn], index) => {
     const category = categories[index % categories.length];
@@ -396,7 +407,6 @@ export function createDemoState(now: Date = new Date()): DemoState {
     });
   });
 
-  /* ----------------------------- proposals ----------------------------- */
   const proposals: Proposal[] = [];
   projects.forEach((project, projectIndex) => {
     const proposalCount = intBetween(rng, 0, 6);
@@ -406,16 +416,8 @@ export function createDemoState(now: Date = new Date()): DemoState {
       const priceFactor = 0.6 + rng() * 0.9;
       const createdAt = daysAgo(now, Math.max(1, intBetween(rng, 1, 200)), intBetween(rng, 8, 22));
       const statusRoll = rng();
-      const status: Proposal["status"] =
-        project.status === "CLOSED" && authorIndex === projectIndex % Math.max(authors.length, 1)
-          ? 2
-          : statusRoll > 0.72
-            ? 2
-            : statusRoll > 0.5
-              ? 1
-              : statusRoll > 0.35
-                ? 0
-                : 1;
+      const isWinner = project.status === "CLOSED" && authorIndex === projectIndex % Math.max(authors.length, 1);
+      const status: Proposal["status"] = determineProposalStatus(isWinner, statusRoll);
 
       const [descFa, descEn] = pick(rng, PROPOSAL_SEED);
       const proposal: Proposal = {
@@ -436,7 +438,6 @@ export function createDemoState(now: Date = new Date()): DemoState {
     });
   });
 
-  // Guarantee the demo freelancer has a healthy, varied pipeline.
   const demoFreelancer = users[2];
   const demoOwner = users[1];
   const unassignedOpen = projects.filter((project) => project.status === "OPEN");
@@ -448,7 +449,7 @@ export function createDemoState(now: Date = new Date()): DemoState {
     );
     if (alreadyMine) continue;
     const createdAt = daysAgo(now, intBetween(rng, 1, 60), intBetween(rng, 8, 22));
-    const status: Proposal["status"] = i % 4 === 0 ? 2 : i % 3 === 0 ? 1 : i % 5 === 0 ? 0 : 1;
+    const status: Proposal["status"] = determineDemoPipelineStatus(i);
     const [descFa, descEn] = pick(rng, PROPOSAL_SEED);
     const proposal: Proposal = {
       _id: objectId(9000 + i),
@@ -466,7 +467,6 @@ export function createDemoState(now: Date = new Date()): DemoState {
     proposals.push(proposal);
   }
 
-  // Guarantee the demo owner has projects of their own with a real pipeline.
   const ownerProjects = projects.filter((project) => project.owner._id === demoOwner._id);
   if (ownerProjects.length < 5) {
     projects.slice(0, 5).forEach((project, index) => {
@@ -476,7 +476,15 @@ export function createDemoState(now: Date = new Date()): DemoState {
     });
   }
 
-  /* --------------------------- reviews & ledger ------------------------ */
+  return { projects, proposals };
+}
+
+function seedReviewsAndLedger(
+  now: Date,
+  rng: Rng,
+  projects: DemoProject[],
+  proposals: Proposal[]
+): { reviews: Review[]; ledger: LedgerEntry[] } {
   const reviews: Review[] = [];
   proposals
     .filter((proposal) => proposal.status === 2)
@@ -525,6 +533,27 @@ export function createDemoState(now: Date = new Date()): DemoState {
         createdAt: daysAgo(now, intBetween(rng, 0, 40), 12),
       });
     });
+
+  return { reviews, ledger };
+}
+
+export function createDemoState(now: Date = new Date()): DemoState {
+  idCounter = 0;
+  const rng = createRng(20240517);
+
+  const categories: Category[] = CATEGORY_SEED.map((seed, index) => ({
+    _id: objectId(index),
+    title: seed.title,
+    englishTitle: seed.englishTitle,
+    icon: seed.icon,
+    description: `پروژه‌های دستهٔ ${seed.title}`,
+  }));
+
+    const users = seedUsers(now, rng);
+  const { projects, proposals } = seedProjectsAndProposals(now, rng, categories, users);
+  const { reviews, ledger } = seedReviewsAndLedger(now, rng, projects, proposals);
+  const demoFreelancer = users[2];
+  const demoOwner = users[1];
 
   /* ---------------------------- notifications -------------------------- */
   const notifications: AppNotification[] = [

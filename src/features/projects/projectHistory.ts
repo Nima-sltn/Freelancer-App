@@ -15,6 +15,18 @@ export interface AuditViewModelItem extends TimelineItem {
   key: string;
 }
 
+function getProposalHistoryTitle(status: number): string {
+  if (status === 2) return translateDirect("projects.history.proposalAccepted");
+  if (status === 1) return translateDirect("projects.history.proposalPending");
+  return translateDirect("projects.history.proposalRejected");
+}
+
+function getProposalHistoryTone(status: number): "success" | "warning" | "danger" {
+  if (status === 2) return "success";
+  if (status === 1) return "warning";
+  return "danger";
+}
+
 export function auditViewModel(project: Project): TimelineItem[] {
   const items: TimelineItem[] = [];
 
@@ -34,18 +46,13 @@ export function auditViewModel(project: Project): TimelineItem[] {
     const status = proposal.status;
     items.push({
       id: `${proposal._id}-proposal`,
-      title:
-        status === 2
-          ? translateDirect("projects.history.proposalAccepted")
-          : status === 1
-            ? translateDirect("projects.history.proposalPending")
-            : translateDirect("projects.history.proposalRejected"),
+      title: getProposalHistoryTitle(status),
       description: translateDirect("projects.history.proposalMeta", undefined, {
         name: (proposal.user as { name?: string })?.name ?? "",
         days: proposal.duration,
       }),
       at: proposal.createdAt ?? project.createdAt ?? new Date().toISOString(),
-      tone: status === 2 ? "success" : status === 1 ? "warning" : "danger",
+      tone: getProposalHistoryTone(status),
     });
   });
 

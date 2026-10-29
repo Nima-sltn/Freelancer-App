@@ -27,9 +27,9 @@ function buildNormalizedCharMap(raw: string): { normalized: string; map: number[
     }
     const norm = normalizeSearch(char);
     if (norm.length > 0) {
-      for (let k = 0; k < norm.length; k += 1) {
+      for (const normChar of norm) {
         map.push(i);
-        normalized += norm[k];
+        normalized += normChar;
       }
     }
   }
@@ -148,7 +148,13 @@ function matchField(rawTarget: string, rawQuery: string): MatchCandidate | null 
       const isWordBoundary = i === 0 || /[\s\-_/.]/.test(target[i - 1]);
       const isConsecutive = lastTargetIndex === i - 1;
 
-      score += isWordBoundary ? 8 : isConsecutive ? 5 : 2;
+      if (isWordBoundary) {
+        score += 8;
+      } else if (isConsecutive) {
+        score += 5;
+      } else {
+        score += 2;
+      }
       normIndices.push([i, i + 1]);
       lastTargetIndex = i;
       queryIndex += 1;

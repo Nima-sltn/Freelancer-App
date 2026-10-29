@@ -11,12 +11,12 @@ export function Tooltip({
   children,
   side = "top",
   className,
-}: {
-  content: ReactNode;
-  children: ReactNode;
-  side?: "top" | "bottom";
-  className?: string;
-}) {
+}: Readonly<{
+  readonly content: ReactNode;
+  readonly children: ReactNode;
+  readonly side?: "top" | "bottom";
+  readonly className?: string;
+}>) {
   const id = useId();
 
   return (

@@ -23,7 +23,7 @@ function setMetaTag(attrName: "name" | "property", attrValue: string, content?: 
   if (typeof document === "undefined") return;
 
   const selector = `meta[${attrName}="${attrValue}"]`;
-  let el = document.head.querySelector(selector) as HTMLMetaElement | null;
+  let el = document.head.querySelector<HTMLMetaElement>(selector);
 
   if (content === undefined || content === "") {
     if (el) el.remove();
@@ -41,7 +41,7 @@ function setMetaTag(attrName: "name" | "property", attrValue: string, content?: 
 function setCanonicalLink(href?: string): void {
   if (typeof document === "undefined") return;
 
-  let el = document.head.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+  let el = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
 
   if (!href) {
     if (el) el.remove();

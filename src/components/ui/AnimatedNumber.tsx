@@ -3,12 +3,12 @@ import { formatNumber, type NumberFormatOptions } from "@/lib/format/numbers";
 import { useTheme } from "@/store/theme";
 
 export interface AnimatedNumberProps {
-  value: number;
-  duration?: number;
-  formatOptions?: NumberFormatOptions;
-  formatter?: (val: number) => string;
-  className?: string;
-  easing?: (t: number) => number;
+  readonly value: number;
+  readonly duration?: number;
+  readonly formatOptions?: NumberFormatOptions;
+  readonly formatter?: (val: number) => string;
+  readonly className?: string;
+  readonly easing?: (t: number) => number;
 }
 
 const defaultEaseOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
@@ -24,7 +24,7 @@ export function AnimatedNumber({
   formatter,
   className,
   easing = defaultEaseOutCubic,
-}: AnimatedNumberProps) {
+}: Readonly<AnimatedNumberProps>) {
   const { reduceMotion } = useTheme();
   const [displayValue, setDisplayValue] = useState(value);
   const previousValueRef = useRef(value);
@@ -54,7 +54,7 @@ export function AnimatedNumber({
     let startTime: number | null = null;
 
     const tick = (now: number) => {
-      if (startTime === null) startTime = now;
+      startTime ??= now;
       const elapsed = now - startTime;
       const progress = Math.min(1, elapsed / duration);
       const eased = easing(progress);

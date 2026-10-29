@@ -13,13 +13,20 @@ export function createScale(dMin: number, dMax: number, rMin: number, rMax: numb
   return (value: number) => rMin + ((value - dMin) / span) * (rMax - rMin);
 }
 
+function getNiceStep(normalized: number): number {
+  if (normalized <= 1) return 1;
+  if (normalized <= 2) return 2;
+  if (normalized <= 5) return 5;
+  return 10;
+}
+
 /** Rounds an axis maximum up to a human-friendly number (1, 2, 5 × 10ⁿ). */
 export function niceCeil(value: number): number {
   if (value <= 0) return 1;
   const exponent = Math.floor(Math.log10(value));
   const magnitude = 10 ** exponent;
   const normalized = value / magnitude;
-  const step = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
+  const step = getNiceStep(normalized);
   return step * magnitude;
 }
 
@@ -66,7 +73,7 @@ export function buildAreaPath(points: Point[], baselineY: number): string {
 }
 
 export function toPoints(
-  data: SeriesPoint[],
+  data: readonly SeriesPoint[],
   scaleX: (index: number) => number,
   scaleY: (value: number) => number,
   key: "value" | "secondary" = "value"
@@ -79,7 +86,7 @@ export function toPoints(
   }));
 }
 
-export function maxOf(data: SeriesPoint[]): number {
+export function maxOf(data: readonly SeriesPoint[]): number {
   return data.reduce((max, item) => Math.max(max, item.value, item.secondary ?? 0), 0);
 }
 

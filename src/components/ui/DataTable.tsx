@@ -7,39 +7,44 @@ import { EmptyState, ErrorState } from "./EmptyState";
 import { SkeletonTable } from "./Skeleton";
 
 export interface Column<T> {
-  key: string;
-  header: ReactNode;
-  render: (row: T) => ReactNode;
-  align?: "start" | "center" | "end";
-  width?: string;
-  sortable?: boolean;
+  readonly key: string;
+  readonly header: ReactNode;
+  readonly render: (row: T) => ReactNode;
+  readonly align?: "start" | "center" | "end";
+  readonly width?: string;
+  readonly sortable?: boolean;
   /** Hidden below `md` — keeps mobile tables readable. */
-  hideOnMobile?: boolean;
-  className?: string;
+  readonly hideOnMobile?: boolean;
+  readonly className?: string;
 }
 
 export type SortDirection = "asc" | "desc";
 
+export interface DataTableSort {
+  readonly field: string;
+  readonly direction: SortDirection;
+}
+
 export interface DataTableProps<T> {
-  columns: Array<Column<T>>;
-  rows: T[];
-  rowKey: (row: T) => string;
-  caption?: string;
-  isLoading?: boolean;
-  error?: unknown;
-  onRetry?: () => void;
-  emptyTitle?: string;
-  emptyDescription?: string;
-  emptyAction?: ReactNode;
-  sort?: { field: string; direction: SortDirection };
-  onSortChange?: (field: string) => void;
+  readonly columns: readonly Column<T>[];
+  readonly rows: readonly T[];
+  readonly rowKey: (row: T) => string;
+  readonly caption?: string;
+  readonly isLoading?: boolean;
+  readonly error?: unknown;
+  readonly onRetry?: () => void;
+  readonly emptyTitle?: string;
+  readonly emptyDescription?: string;
+  readonly emptyAction?: ReactNode;
+  readonly sort?: DataTableSort;
+  readonly onSortChange?: (field: string) => void;
   /** Enables windowing automatically once the list is long. */
-  virtualize?: boolean;
-  rowHeight?: number;
-  maxHeight?: number;
-  onRowClick?: (row: T) => void;
-  footer?: ReactNode;
-  className?: string;
+  readonly virtualize?: boolean;
+  readonly rowHeight?: number;
+  readonly maxHeight?: number;
+  readonly onRowClick?: (row: T) => void;
+  readonly footer?: ReactNode;
+  readonly className?: string;
 }
 
 const ALIGN = {
@@ -47,6 +52,17 @@ const ALIGN = {
   center: "text-center",
   end: "text-end",
 } as const;
+
+function getAriaSort(isSorted: boolean, direction?: SortDirection): "ascending" | "descending" | "none" {
+  if (!isSorted) return "none";
+  return direction === "asc" ? "ascending" : "descending";
+}
+
+function renderSortIcon(isSorted: boolean, direction?: SortDirection) {
+  if (!isSorted) return null;
+  if (direction === "asc") return <HiChevronUp aria-hidden="true" />;
+  return <HiChevronDown aria-hidden="true" />;
+}
 
 /**
  * One table for the whole product.
@@ -74,7 +90,7 @@ export function DataTable<T>({
   onRowClick,
   footer,
   className,
-}: DataTableProps<T>) {
+}: Readonly<DataTableProps<T>>) {
   const { t } = useT();
   const resolvedEmptyTitle = emptyTitle ?? t("common.noData");
   const { start, end, totalHeight, offsetY, containerRef } = useVirtualList(rows.length, {
@@ -110,9 +126,7 @@ export function DataTable<T>({
                     key={column.key}
                     scope="col"
                     style={{ width: column.width }}
-                    aria-sort={
-                      isSorted ? (sort?.direction === "asc" ? "ascending" : "descending") : "none"
-                    }
+                    aria-sort={getAriaSort(isSorted, sort?.direction)}
                     className={cx(
                       ALIGN[column.align ?? "start"],
                       column.hideOnMobile && "hidden md:table-cell"
@@ -123,13 +137,7 @@ export function DataTable<T>({
                         onClick={() => onSortChange(column.key)}
                         className="inline-flex items-center gap-1 font-bold transition-colors hover:text-primary-700">
                         {column.header}
-                        {isSorted ? (
-                          sort?.direction === "asc" ? (
-                            <HiChevronUp aria-hidden="true" />
-                          ) : (
-                            <HiChevronDown aria-hidden="true" />
-                          )
-                        ) : null}
+                        {renderSortIcon(isSorted, sort?.direction)}
                       </button>
                     ) : (
                       column.header
@@ -141,7 +149,7 @@ export function DataTable<T>({
           </thead>
           <tbody>
             {usesVirtualSpacers && offsetY > 0 ? (
-              <tr aria-hidden="true" style={{ height: offsetY }}>
+              <tr className="pointer-events-none select-none" style={{ height: offsetY }}>
                 <td colSpan={columns.length} />
               </tr>
             ) : null}
@@ -166,7 +174,7 @@ export function DataTable<T>({
             ))}
 
             {usesVirtualSpacers && end < rows.length ? (
-              <tr aria-hidden="true" style={{ height: totalHeight - end * rowHeight }}>
+              <tr className="pointer-events-none select-none" style={{ height: totalHeight - end * rowHeight }}>
                 <td colSpan={columns.length} />
               </tr>
             ) : null}

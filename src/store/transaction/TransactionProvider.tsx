@@ -151,7 +151,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
       }
       const keys = new Set(entry.inverse.map((item) => JSON.stringify(item.queryKey)));
       keys.forEach((key) => {
-        void queryClient.invalidateQueries({ queryKey: JSON.parse(key) as QueryKey });
+        queryClient.invalidateQueries({ queryKey: JSON.parse(key) as QueryKey });
       });
     },
     [queryClient, restoreInverse]
@@ -160,7 +160,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
   const invalidateKeys = useCallback(
     (keys: QueryKey[]) => {
       keys.forEach((queryKey) => {
-        void queryClient.invalidateQueries({ queryKey });
+        queryClient.invalidateQueries({ queryKey });
       });
     },
     [queryClient]
@@ -313,8 +313,9 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const compensate = isReplayable(target.compensateCommand)
-        ? () => executeCommand(target.compensateCommand!)
+      const compensateCmd = target.compensateCommand;
+      const compensate = isReplayable(compensateCmd)
+        ? () => executeCommand(compensateCmd)
         : runtime.current.get(target.id)?.compensate;
 
       if (compensate) {
@@ -370,7 +371,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = appEvents.on(APP_EVENTS.networkOnline, () => {
-      void flush();
+      flush();
     });
     return unsubscribe;
   }, [flush]);
@@ -395,7 +396,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     );
     toReplay.forEach((entry) => update(entry.id, { state: "queued" }));
     toReplay.forEach((entry) => {
-      void withLock(entry.resource, () => replay({ ...entry, state: "queued" }));
+      withLock(entry.resource, () => replay({ ...entry, state: "queued" }));
     });
     // Runs once per mount: this is a boot-time reconciliation, not a reaction.
     // eslint-disable-next-line react-hooks/exhaustive-deps

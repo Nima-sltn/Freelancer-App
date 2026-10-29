@@ -3,14 +3,14 @@ import { AnimatedTransition, type TransitionVariant } from "./AnimatedTransition
 import { cx } from "@/lib/cx";
 
 export interface AnimatedListProps<T> {
-  items: T[];
-  renderItem: (item: T, index: number) => ReactNode;
-  keyExtractor?: (item: T, index: number) => string | number;
-  staggerMs?: number;
-  variant?: TransitionVariant;
-  className?: string;
-  itemClassName?: string;
-  as?: "ul" | "ol" | "div";
+  readonly items: readonly T[];
+  readonly renderItem: (item: T, index: number) => ReactNode;
+  readonly keyExtractor?: (item: T, index: number) => string | number;
+  readonly staggerMs?: number;
+  readonly variant?: TransitionVariant;
+  readonly className?: string;
+  readonly itemClassName?: string;
+  readonly as?: "ul" | "ol" | "div";
 }
 
 /**
@@ -25,7 +25,7 @@ export function AnimatedList<T>({
   className,
   itemClassName,
   as = "ul",
-}: AnimatedListProps<T>) {
+}: Readonly<AnimatedListProps<T>>) {
   const Container = as;
 
   return (

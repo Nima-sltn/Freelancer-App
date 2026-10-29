@@ -9,6 +9,18 @@ import type { Project, User } from "@/types";
 import ProposalForm from "../proposals/ProposalForm";
 import ProjectCard, { ProjectCardActions } from "./ProjectCard";
 
+export interface BrowseProjectsProps {
+  readonly projects: Project[];
+  readonly user?: User;
+  readonly isLoading?: boolean;
+  readonly error?: unknown;
+  readonly onRetry?: () => void;
+  readonly emptyTitle?: string;
+  readonly emptyDescription?: string;
+  readonly limit?: number;
+  readonly columns?: 2 | 3;
+}
+
 /**
  * Freelancer-facing project discovery.
  *
@@ -27,17 +39,7 @@ export function BrowseProjects({
   emptyDescription,
   limit,
   columns = 3,
-}: {
-  projects: Project[];
-  user?: User;
-  isLoading?: boolean;
-  error?: unknown;
-  onRetry?: () => void;
-  emptyTitle?: string;
-  emptyDescription?: string;
-  limit?: number;
-  columns?: 2 | 3;
-}) {
+}: Readonly<BrowseProjectsProps>) {
   const { t, locale } = useT();
   const [activeProject, setActiveProject] = useState<Project | null>(null);
 

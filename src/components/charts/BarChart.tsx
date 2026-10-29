@@ -4,15 +4,15 @@ import { formatNumber } from "@/lib/format/numbers";
 import { useT } from "@/store/i18n";
 import { createScale, maxOf, niceCeil, pickColor } from "./utils";
 
-interface BarChartProps {
-  data: SeriesPoint[];
-  height?: number;
-  valueFormatter?: (value: number) => string;
+export interface BarChartProps {
+  readonly data: readonly SeriesPoint[];
+  readonly height?: number;
+  readonly valueFormatter?: (value: number) => string;
   /** Colours each bar from the categorical palette instead of one accent. */
-  colored?: boolean;
-  color?: string;
-  horizontal?: boolean;
-  maxLabels?: number;
+  readonly colored?: boolean;
+  readonly color?: string;
+  readonly horizontal?: boolean;
+  readonly maxLabels?: number;
 }
 
 /** Bar chart (vertical or horizontal) rendered with plain SVG rectangles. */
@@ -24,7 +24,7 @@ export function BarChart({
   color = "rgb(var(--color-primary-600))",
   horizontal = false,
   maxLabels = 8,
-}: BarChartProps) {
+}: Readonly<BarChartProps>) {
   const { t } = useT();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
@@ -49,8 +49,8 @@ export function BarChart({
       <svg
         viewBox={`0 0 720 ${chartHeight}`}
         className="h-auto w-full"
-        role="img"
         aria-label={t("charts.barHorizontalLabel")}>
+        <title>{t("charts.barHorizontalLabel")}</title>
         {data.map((item, index) => {
           const y = index * rowHeight + 6;
           const barWidth = scale(item.value);
@@ -98,9 +98,9 @@ export function BarChart({
       <svg
         viewBox={`0 0 ${layout.width} ${height}`}
         className="h-auto w-full"
-        role="img"
         aria-label={t("charts.barLabel")}
         onMouseLeave={() => setActiveIndex(null)}>
+        <title>{t("charts.barLabel")}</title>
         {[0, 0.5, 1].map((ratio) => {
           const y = layout.padding.top + layout.innerHeight * ratio;
           return (
@@ -149,12 +149,10 @@ export function BarChart({
       </svg>
 
       {activeIndex !== null ? (
-        <div
-          role="status"
-          className="pointer-events-none absolute top-2 start-1/2 -translate-x-1/2 rounded-lg bg-ink px-3 py-1.5 text-xs font-bold text-ink-inverted shadow-pop rtl:translate-x-1/2">
+        <output className="pointer-events-none absolute top-2 start-1/2 -translate-x-1/2 rounded-lg bg-ink px-3 py-1.5 text-xs font-bold text-ink-inverted shadow-pop rtl:translate-x-1/2">
           <span className="me-2">{data[activeIndex].label}</span>
           <span className="tabular-nums">{valueFormatter(data[activeIndex].value)}</span>
-        </div>
+        </output>
       ) : null}
     </div>
   );

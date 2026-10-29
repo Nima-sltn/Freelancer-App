@@ -30,7 +30,13 @@ interface FormValues {
  * is the kind of cross-domain link (analytics ↔ forms) that makes a product feel
  * coherent.
  */
-export function ProposalForm({ project, onClose }: { project: Project; onClose: () => void }) {
+export function ProposalForm({
+  project,
+  onClose,
+}: Readonly<{
+  readonly project: Project;
+  readonly onClose: () => void;
+}>) {
   const { t } = useT();
   const { createProposal, isBusy } = useProposalMutations();
 
@@ -63,7 +69,7 @@ export function ProposalForm({ project, onClose }: { project: Project; onClose: 
       price: parseNumeric(values.price),
       duration: parseNumeric(values.duration),
     };
-    void createProposal(payload, {
+    createProposal(payload, {
       onSuccess: onClose,
       projectTitle: project.title,
     });

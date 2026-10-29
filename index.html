@@ -37,6 +37,7 @@
           if (theme && theme.density) root.dataset.density = theme.density;
           if (theme && theme.radius) root.dataset.radius = theme.radius;
         } catch (error) {
+          console.warn("Theme preload fallback:", error);
           document.documentElement.classList.add("light-mode");
         }
       })();
@@ -44,10 +45,10 @@
   </head>
   <body>
     <div id="root">
-      <div class="boot-splash" role="status" aria-live="polite">
+      <output class="boot-splash" aria-live="polite">
         <div class="boot-splash__spinner" aria-hidden="true"></div>
         <p>فریلنس‌هاب در حال بارگذاری است…</p>
-      </div>
+      </output>
     </div>
     <noscript>برای استفاده از این برنامه باید جاوااسکریپت فعال باشد.</noscript>
     <script type="module" src="/src/main.tsx"></script>

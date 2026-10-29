@@ -2,13 +2,13 @@ import { Switch, SwitchGroup, SwitchLabel } from "@headlessui/react";
 import { cx } from "@/lib/cx";
 
 interface ToggleProps {
-  label: string;
-  enabled: boolean;
-  onChange: () => void;
-  description?: string;
-  disabled?: boolean;
+  readonly label: string;
+  readonly enabled: boolean;
+  readonly onChange: () => void;
+  readonly description?: string;
+  readonly disabled?: boolean;
   /** Hides the label visually while keeping it for assistive tech. */
-  hideLabel?: boolean;
+  readonly hideLabel?: boolean;
 }
 
 /** Switch built on Headless UI: correct `role="switch"` semantics and keyboard support. */
@@ -19,7 +19,7 @@ export function Toggle({
   description,
   disabled,
   hideLabel,
-}: ToggleProps) {
+}: Readonly<ToggleProps>) {
   return (
     <SwitchGroup as="div" className="flex items-center justify-between gap-4">
       <span className="flex flex-col text-start">

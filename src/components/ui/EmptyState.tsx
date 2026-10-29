@@ -5,19 +5,25 @@ import { ApiError } from "@/lib/http/errors";
 import { useT } from "@/store/i18n";
 import { cx } from "@/lib/cx";
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ApiError) return error.message;
+  if (error instanceof Error) return error.message;
+  return fallback;
+}
+
 export function EmptyState({
   icon,
   title,
   description,
   action,
   className,
-}: {
-  icon?: ReactNode;
-  title: string;
-  description?: string;
-  action?: ReactNode;
-  className?: string;
-}) {
+}: Readonly<{
+  readonly icon?: ReactNode;
+  readonly title: string;
+  readonly description?: string;
+  readonly action?: ReactNode;
+  readonly className?: string;
+}>) {
   return (
     <div
       className={cx(
@@ -43,19 +49,14 @@ export function ErrorState({
   onRetry,
   title,
   className,
-}: {
-  error?: unknown;
-  onRetry?: () => void;
-  title?: string;
-  className?: string;
-}) {
+}: Readonly<{
+  readonly error?: unknown;
+  readonly onRetry?: () => void;
+  readonly title?: string;
+  readonly className?: string;
+}>) {
   const { t } = useT();
-  const message =
-    error instanceof ApiError
-      ? error.message
-      : error instanceof Error
-        ? error.message
-        : t("common.unknownError");
+  const message = getErrorMessage(error, t("common.unknownError"));
 
   return (
     <div

@@ -48,7 +48,7 @@ export const ICONS: Record<IconName, IconType> = {
  * `components/`, and guarantees one icon family across the product: there is
  * exactly one registry.
  */
-export function IconFor({ name }: { name: IconName }) {
+export function IconFor({ name }: Readonly<{ readonly name: IconName }>) {
   const Glyph = ICONS[name] ?? ICONS.grid;
   return <Glyph />;
 }

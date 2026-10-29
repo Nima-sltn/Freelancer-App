@@ -87,14 +87,12 @@ export function installTransport(adapter: AxiosAdapter): void {
 }
 
 async function refreshAccessToken(): Promise<void> {
-  if (!refreshPromise) {
-    refreshPromise = refreshClient
-      .get(REFRESH_PATH)
-      .then(() => undefined)
-      .finally(() => {
-        refreshPromise = null;
-      });
-  }
+  refreshPromise ??= refreshClient
+    .get(REFRESH_PATH)
+    .then(() => undefined)
+    .finally(() => {
+      refreshPromise = null;
+    });
   return refreshPromise;
 }
 
@@ -112,8 +110,8 @@ api.interceptors.response.use(
       return Promise.reject(normalized);
     }
 
-    const config = (error as { config?: InternalAxiosRequestConfig })?.config;
-    if (!config || !(config as InternalAxiosRequestConfig & { _retry?: boolean })) {
+    const config = (error as { config?: InternalAxiosRequestConfig & { _retry?: boolean } })?.config;
+    if (!config) {
       return Promise.reject(normalized);
     }
 

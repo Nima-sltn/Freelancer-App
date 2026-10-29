@@ -63,13 +63,15 @@ function systemPrefersDark(): boolean {
  * including third-party widgets — re-themes instantly with no re-render and no
  * flash of the wrong theme (`index.html` applies the persisted theme inline).
  */
+export interface ThemeProviderProps {
+  readonly children: ReactNode;
+  readonly initialTheme?: Partial<ThemeSettings>;
+}
+
 export function ThemeProvider({
   children,
   initialTheme,
-}: {
-  children: ReactNode;
-  initialTheme?: Partial<ThemeSettings>;
-}) {
+}: Readonly<ThemeProviderProps>) {
   const [settings, setSettings] = useState<ThemeSettings>(() => ({
     ...DEFAULT_THEME,
     ...storage.get<Partial<ThemeSettings>>(STORAGE_KEY, {}),

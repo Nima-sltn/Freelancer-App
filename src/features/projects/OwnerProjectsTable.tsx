@@ -23,6 +23,21 @@ import useProjectMutations from "./useProjectMutations";
  * confirmation dialog. The deadline column reuses the shared deadline helper so
  * urgency styling matches the cards and the timeline.
  */
+function getDeadlineToneClass(tone?: string): string {
+  if (tone === "danger") return "text-danger";
+  if (tone === "warning") return "text-warning";
+  return "text-ink-soft";
+}
+
+export interface OwnerProjectsTableProps {
+  readonly projects: readonly Project[];
+  readonly categories: CategoryOption[];
+  readonly isLoading?: boolean;
+  readonly error?: unknown;
+  readonly onRetry?: () => void;
+  readonly rowLimit?: number;
+}
+
 export function OwnerProjectsTable({
   projects,
   categories,
@@ -30,14 +45,7 @@ export function OwnerProjectsTable({
   error,
   onRetry,
   rowLimit,
-}: {
-  projects: Project[];
-  categories: CategoryOption[];
-  isLoading?: boolean;
-  error?: unknown;
-  onRetry?: () => void;
-  rowLimit?: number;
-}) {
+}: Readonly<OwnerProjectsTableProps>) {
   const { t, locale } = useT();
   const { removeProject, toggleStatus, isBusy } = useProjectMutations();
   const [editing, setEditing] = useState<Project | null>(null);
@@ -99,13 +107,7 @@ export function OwnerProjectsTable({
         const info = getDeadlineInfo(project.deadline);
         return (
           <span
-            className={
-              info.tone === "danger"
-                ? "text-danger"
-                : info.tone === "warning"
-                  ? "text-warning"
-                  : "text-ink-soft"
-            }>
+            className={getDeadlineToneClass(info.tone)}>
             {formatDateShort(project.deadline)}
           </span>
         );
@@ -145,14 +147,22 @@ export function OwnerProjectsTable({
       key: "status",
       header: t("common.status"),
       render: (project) => (
-        <button
-          type="button"
-          disabled={isBusy}
-          onClick={() => void toggleStatus(project)}
-          className="transition-opacity hover:opacity-80"
-          title={`${t("common.status")}: ${t(`status.project.${project.status.toLowerCase()}`)}`}>
-          <ProjectStatusBadge status={project.status} />
-        </button>
+        (() => {
+          const statusKey = `status.project.${project.status.toLowerCase()}`;
+          const statusText = t(statusKey);
+          return (
+            <button
+              type="button"
+              disabled={isBusy}
+              onClick={() => {
+                toggleStatus(project);
+              }}
+              className="transition-opacity hover:opacity-80"
+              title={`${t("common.status")}: ${statusText}`}>
+              <ProjectStatusBadge status={project.status} />
+            </button>
+          );
+        })()
       ),
     },
     {
@@ -240,7 +250,7 @@ export function OwnerProjectsTable({
         isLoading={isBusy}
         onConfirm={() => {
           if (!deleting) return;
-          void removeProject(deleting, { onSuccess: () => setDeleting(null) });
+          removeProject(deleting, { onSuccess: () => setDeleting(null) });
         }}
       />
     </>

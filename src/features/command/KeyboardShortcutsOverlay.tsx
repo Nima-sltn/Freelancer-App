@@ -5,16 +5,16 @@ import { Button } from "@/components/ui/Button";
 import { useT } from "@/store/i18n";
 
 export interface ShortcutGroup {
-  title: string;
-  items: Array<{ keys: string[]; description: string }>;
+  readonly title: string;
+  readonly items: readonly { readonly keys: readonly string[]; readonly description: string }[];
 }
 
 export interface KeyboardShortcutsOverlayProps {
-  open: boolean;
-  onClose: () => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
 }
 
-export function KeyboardShortcutsOverlay({ open, onClose }: KeyboardShortcutsOverlayProps) {
+export function KeyboardShortcutsOverlay({ open, onClose }: Readonly<KeyboardShortcutsOverlayProps>) {
   const { t } = useT();
 
   const shortcutGroups: ShortcutGroup[] = useMemo(
@@ -95,9 +95,9 @@ export function KeyboardShortcutsOverlay({ open, onClose }: KeyboardShortcutsOve
                       {group.title}
                     </h4>
                     <div className="space-y-2">
-                      {group.items.map((item, idx) => (
+                      {group.items.map((item) => (
                         <div
-                          key={idx}
+                          key={item.description}
                           className="flex items-center justify-between rounded-lg bg-surface-sunken px-3 py-2 text-xs"
                         >
                           <span className="text-ink">{item.description}</span>

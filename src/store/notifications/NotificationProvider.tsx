@@ -49,7 +49,11 @@ const MAX_ITEMS = 50;
  * local persistence, and de-duplicates by deterministic id so the same event is
  * never announced twice.
  */
-export function NotificationProvider({ children }: { children: ReactNode }) {
+export interface NotificationProviderProps {
+  readonly children: ReactNode;
+}
+
+export function NotificationProvider({ children }: Readonly<NotificationProviderProps>) {
   const [items, setItems] = useState<AppNotification[]>(() =>
     storage.get<AppNotification[]>(STORAGE_KEY, [])
   );

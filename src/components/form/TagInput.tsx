@@ -4,16 +4,16 @@ import { useT } from "@/store/i18n";
 import { FormField } from "./FormField";
 
 interface TagInputProps {
-  label?: ReactNode;
-  name: string;
-  value: string[];
-  onChange: (tags: string[]) => void;
-  placeholder?: string;
-  hint?: ReactNode;
-  error?: ReactNode;
-  required?: boolean;
-  maxTags?: number;
-  className?: string;
+  readonly label?: ReactNode;
+  readonly name: string;
+  readonly value: readonly string[];
+  readonly onChange: (tags: string[]) => void;
+  readonly placeholder?: string;
+  readonly hint?: ReactNode;
+  readonly error?: ReactNode;
+  readonly required?: boolean;
+  readonly maxTags?: number;
+  readonly className?: string;
 }
 
 /**
@@ -33,7 +33,7 @@ export function TagInput({
   required,
   maxTags = 8,
   className,
-}: TagInputProps) {
+}: Readonly<TagInputProps>) {
   const { t } = useT();
   const displayPlaceholder = placeholder ?? t("field.tagPlaceholder");
 
@@ -50,7 +50,7 @@ export function TagInput({
       error={error}
       className={className}>
       <TagsInput
-        value={value}
+        value={[...value]}
         onChange={handleChange}
         name={name}
         placeHolder={displayPlaceholder}

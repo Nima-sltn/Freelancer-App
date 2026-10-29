@@ -4,11 +4,17 @@ import { NavLink } from "react-router-dom";
 import { cx } from "@/lib/cx";
 
 export interface TabDefinition {
-  id: string;
-  label: ReactNode;
-  content: ReactNode;
-  badge?: ReactNode;
-  hidden?: boolean;
+  readonly id: string;
+  readonly label: ReactNode;
+  readonly content: ReactNode;
+  readonly badge?: ReactNode;
+  readonly hidden?: boolean;
+}
+
+export interface TabsProps {
+  readonly tabs: readonly TabDefinition[];
+  readonly defaultIndex?: number;
+  readonly className?: string;
 }
 
 /** Headless UI tabs: full arrow-key navigation and correct ARIA wiring. */
@@ -16,11 +22,7 @@ export function Tabs({
   tabs,
   defaultIndex = 0,
   className,
-}: {
-  tabs: TabDefinition[];
-  defaultIndex?: number;
-  className?: string;
-}) {
+}: Readonly<TabsProps>) {
   const visible = tabs.filter((tab) => !tab.hidden);
 
   return (
@@ -53,6 +55,21 @@ export function Tabs({
   );
 }
 
+export interface SegmentedControlOption<T extends string> {
+  readonly value: T;
+  readonly label: ReactNode;
+  readonly icon?: ReactNode;
+  readonly title?: string;
+}
+
+export interface SegmentedControlProps<T extends string> {
+  readonly value: T;
+  readonly onChange: (value: T) => void;
+  readonly options: readonly SegmentedControlOption<T>[];
+  readonly size?: "sm" | "md";
+  readonly ariaLabel: string;
+}
+
 /** Compact pill switcher used for view modes (table/board/timeline). */
 export function SegmentedControl<T extends string>({
   value,
@@ -60,18 +77,11 @@ export function SegmentedControl<T extends string>({
   options,
   size = "md",
   ariaLabel,
-}: {
-  value: T;
-  onChange: (value: T) => void;
-  options: Array<{ value: T; label: ReactNode; icon?: ReactNode; title?: string }>;
-  size?: "sm" | "md";
-  ariaLabel: string;
-}) {
+}: Readonly<SegmentedControlProps<T>>) {
   return (
-    <div
-      role="group"
-      aria-label={ariaLabel}
-      className="inline-flex items-center gap-1 rounded-xl border border-line bg-surface-sunken p-1">
+    <fieldset
+      className="m-0 inline-flex min-w-0 items-center gap-1 rounded-xl border border-line bg-surface-sunken p-1">
+      <legend className="sr-only">{ariaLabel}</legend>
       {options.map((option) => {
         const isActive = option.value === value;
         return (
@@ -93,8 +103,20 @@ export function SegmentedControl<T extends string>({
           </button>
         );
       })}
-    </div>
+    </fieldset>
   );
+}
+
+export interface SegmentedNavLinkOption<T extends string> {
+  readonly value: T;
+  readonly label: ReactNode;
+}
+
+export interface SegmentedNavLinkProps<T extends string> {
+  readonly value: T;
+  readonly options: readonly SegmentedNavLinkOption<T>[];
+  readonly ariaLabel: string;
+  readonly buildHref: (value: T) => string;
 }
 
 /** Segmented control whose state lives in the route (deep-linkable views). */
@@ -103,12 +125,7 @@ export function SegmentedNavLink<T extends string>({
   options,
   ariaLabel,
   buildHref,
-}: {
-  value: T;
-  options: Array<{ value: T; label: ReactNode }>;
-  ariaLabel: string;
-  buildHref: (value: T) => string;
-}) {
+}: Readonly<SegmentedNavLinkProps<T>>) {
   return (
     <nav
       aria-label={ariaLabel}

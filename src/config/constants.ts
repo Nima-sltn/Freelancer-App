@@ -20,29 +20,27 @@ export const ROLE_HOME: Record<UserRole, string> = {
   ADMIN: "/admin/dashboard",
 };
 
+export type StatusTone = "success" | "warning" | "danger" | "neutral";
+
+export interface StatusMeta {
+  readonly labelKey: string;
+  readonly tone: StatusTone;
+}
+
 /** The API stores verification state as a numeric enum. */
-export const USER_STATUS: Record<
-  UserStatus,
-  { labelKey: string; tone: "success" | "warning" | "danger" | "neutral" }
-> = {
+export const USER_STATUS: Record<UserStatus, StatusMeta> = {
   0: { labelKey: "status.user.rejected", tone: "danger" },
   1: { labelKey: "status.user.pending", tone: "warning" },
   2: { labelKey: "status.user.verified", tone: "success" },
 };
 
-export const PROPOSAL_STATUS: Record<
-  ProposalStatus,
-  { labelKey: string; tone: "success" | "warning" | "danger" | "neutral" }
-> = {
+export const PROPOSAL_STATUS: Record<ProposalStatus, StatusMeta> = {
   0: { labelKey: "status.proposal.rejected", tone: "danger" },
   1: { labelKey: "status.proposal.pending", tone: "warning" },
   2: { labelKey: "status.proposal.accepted", tone: "success" },
 };
 
-export const PROJECT_STATUS: Record<
-  ProjectStatus,
-  { labelKey: string; tone: "success" | "warning" | "danger" | "neutral" }
-> = {
+export const PROJECT_STATUS: Record<ProjectStatus, StatusMeta> = {
   OPEN: { labelKey: "status.project.open", tone: "success" },
   CLOSED: { labelKey: "status.project.closed", tone: "neutral" },
 };

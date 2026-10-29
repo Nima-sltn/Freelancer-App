@@ -37,7 +37,11 @@ const SYNC_INTERVAL_MS = 45_000;
  * refresh themselves, collaborators' changes appear) without a backend change,
  * and it backs off automatically when the user is idle or offline.
  */
-export function RealtimeProvider({ children }: { children: ReactNode }) {
+export interface RealtimeProviderProps {
+  readonly children: ReactNode;
+}
+
+export function RealtimeProvider({ children }: Readonly<RealtimeProviderProps>) {
   const queryClient = useQueryClient();
   const { online, degraded } = useOnlineStatus();
   const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
@@ -66,7 +70,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
 
     const interval = window.setInterval(() => {
       if (document.visibilityState !== "visible") return;
-      void syncNow();
+      syncNow();
     }, SYNC_INTERVAL_MS);
 
     return () => window.clearInterval(interval);

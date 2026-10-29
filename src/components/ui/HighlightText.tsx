@@ -3,11 +3,11 @@ import { highlightMatches, fuzzySearch } from "@/lib/search";
 import { cx } from "@/lib/cx";
 
 export interface HighlightTextProps {
-  text: string;
-  indices?: [number, number][];
-  query?: string;
-  className?: string;
-  highlightClassName?: string;
+  readonly text: string;
+  readonly indices?: readonly [number, number][];
+  readonly query?: string;
+  readonly className?: string;
+  readonly highlightClassName?: string;
 }
 
 /**
@@ -19,25 +19,33 @@ export function HighlightText({
   query,
   className,
   highlightClassName,
-}: HighlightTextProps) {
+}: Readonly<HighlightTextProps>) {
   const segments = useMemo(() => {
+    let raw: Array<{ text: string; highlighted: boolean }>;
     if (indices && indices.length > 0) {
-      return highlightMatches(text, indices);
-    }
-    if (query && query.trim()) {
+      raw = highlightMatches(text, indices as [number, number][]);
+    } else if (query?.trim()) {
       const results = fuzzySearch([{ text }], query, ["text"]);
       const computedIndices = results[0]?.matches[0]?.indices ?? [];
-      return highlightMatches(text, computedIndices);
+      raw = highlightMatches(text, computedIndices);
+    } else {
+      raw = [{ text, highlighted: false }];
     }
-    return [{ text, highlighted: false }];
+
+    let offset = 0;
+    return raw.map((segment) => {
+      const key = `seg-${offset}`;
+      offset += segment.text.length;
+      return { ...segment, key };
+    });
   }, [text, indices, query]);
 
   return (
     <span className={className}>
-      {segments.map((segment, index) =>
+      {segments.map((segment) =>
         segment.highlighted ? (
           <mark
-            key={index}
+            key={segment.key}
             className={cx(
               "rounded-sm bg-primary-500/20 px-0.5 font-semibold text-primary-900 dark:bg-primary-400/25 dark:text-primary-100",
               highlightClassName
@@ -45,7 +53,7 @@ export function HighlightText({
             {segment.text}
           </mark>
         ) : (
-          <span key={index}>{segment.text}</span>
+          <span key={segment.key}>{segment.text}</span>
         )
       )}
     </span>

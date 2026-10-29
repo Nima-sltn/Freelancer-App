@@ -93,8 +93,6 @@ export function CommandPalette() {
               placeholder={t("command.placeholder")}
               aria-label={t("command.title")}
               aria-controls="command-results"
-              role="combobox"
-              aria-expanded="true"
               className="flex-1 bg-transparent text-sm text-ink placeholder:text-ink-muted focus:outline-none"
             />
             <Kbd>Esc</Kbd>
@@ -103,7 +101,6 @@ export function CommandPalette() {
           <ul
             id="command-results"
             ref={listRef}
-            role="listbox"
             className="max-h-[52vh] overflow-y-auto p-2">
             {flat.length === 0 ? (
               <li className="px-3 py-8 text-center text-sm text-ink-muted">
@@ -121,12 +118,12 @@ export function CommandPalette() {
                       const index = runningIndex;
                       const isActive = index === cursor;
                       const segments = highlightMatches(command.label, query);
+                      let segmentOffset = 0;
 
                       return (
                         <li key={command.id}>
                           <button
                             type="button"
-                            role="option"
                             aria-selected={isActive}
                             data-active={isActive}
                             onMouseEnter={() => setCursor(index)}
@@ -139,13 +136,17 @@ export function CommandPalette() {
                               {command.icon}
                             </span>
                             <span className="min-w-0 flex-1 truncate text-sm font-bold">
-                              {segments.map((segment, segmentIndex) => (
-                                <span
-                                  key={segmentIndex}
-                                  className={segment.match ? "underline decoration-2" : undefined}>
-                                  {segment.text}
-                                </span>
-                              ))}
+                              {segments.map((segment) => {
+                                const segKey = `${command.id}-${segmentOffset}`;
+                                segmentOffset += segment.text.length;
+                                return (
+                                  <span
+                                    key={segKey}
+                                    className={segment.match ? "underline decoration-2" : undefined}>
+                                    {segment.text}
+                                  </span>
+                                );
+                              })}
                             </span>
                             {command.hint ? (
                               <span className="hidden shrink-0 truncate text-xs opacity-70 sm:inline">

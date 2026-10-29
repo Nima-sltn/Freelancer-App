@@ -19,15 +19,15 @@ export function Select<T extends BaseOption>({
   ariaLabel,
   placeholder,
   disabled,
-}: {
-  value: T["value"];
-  onChange: (event: ChangeEvent<HTMLSelectElement>) => void;
-  options: readonly T[];
-  className?: string;
-  ariaLabel?: string;
-  placeholder?: string;
-  disabled?: boolean;
-}) {
+}: Readonly<{
+  readonly value: T["value"];
+  readonly onChange: (event: ChangeEvent<HTMLSelectElement>) => void;
+  readonly options: readonly T[];
+  readonly className?: string;
+  readonly ariaLabel?: string;
+  readonly placeholder?: string;
+  readonly disabled?: boolean;
+}>) {
   return (
     <select
       value={value}
@@ -46,17 +46,17 @@ export function Select<T extends BaseOption>({
 }
 
 export interface RHFSelectProps<T extends FieldValues> {
-  name: Path<T>;
-  label?: ReactNode;
-  register: UseFormRegister<T>;
-  errors?: FieldErrors<T>;
-  rules?: RegisterOptions<T, Path<T>>;
-  options: Array<SelectOption<string | number>>;
-  placeholder?: string;
-  required?: boolean;
-  hint?: ReactNode;
-  disabled?: boolean;
-  className?: string;
+  readonly name: Path<T>;
+  readonly label?: ReactNode;
+  readonly register: UseFormRegister<T>;
+  readonly errors?: FieldErrors<T>;
+  readonly rules?: RegisterOptions<T, Path<T>>;
+  readonly options: Array<SelectOption<string | number>>;
+  readonly placeholder?: string;
+  readonly required?: boolean;
+  readonly hint?: ReactNode;
+  readonly disabled?: boolean;
+  readonly className?: string;
 }
 
 /** RHF-bound select with a placeholder option and validation display. */
@@ -72,7 +72,7 @@ export function RHFSelect<T extends FieldValues>({
   hint,
   disabled,
   className,
-}: RHFSelectProps<T>) {
+}: Readonly<RHFSelectProps<T>>) {
   const { t } = useT();
   const error = errors?.[name]?.message as string | undefined;
   const aria = useFieldAria(name, { hasError: Boolean(error), hasHint: Boolean(hint) });

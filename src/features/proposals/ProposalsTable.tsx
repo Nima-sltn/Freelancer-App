@@ -22,10 +22,10 @@ const STATUS_OPTIONS = ([0, 1, 2] as ProposalStatus[]).map((status) => ({
 function ReviewForm({
   proposal,
   onClose,
-}: {
-  proposal: Proposal;
-  onClose: () => void;
-}) {
+}: Readonly<{
+  readonly proposal: Proposal;
+  readonly onClose: () => void;
+}>) {
   const { t } = useT();
   const { changeStatus, isBusy } = useProposalMutations();
   const { register, handleSubmit } = useForm<{ status: string }>({
@@ -34,7 +34,7 @@ function ReviewForm({
 
   const submit = handleSubmit((values) => {
     const status = Number(values.status) as ProposalStatus;
-    void changeStatus(
+    changeStatus(
       proposal._id,
       proposal.projectId ?? proposal.project?._id ?? "",
       status,
@@ -80,17 +80,17 @@ export function ProposalsTable({
   emptyDescription,
   showProject = false,
   rowLimit,
-}: {
-  proposals: Proposal[];
-  isLoading?: boolean;
-  error?: unknown;
-  onRetry?: () => void;
-  canReview?: boolean;
-  emptyTitle?: string;
-  emptyDescription?: string;
-  showProject?: boolean;
-  rowLimit?: number;
-}) {
+}: Readonly<{
+  readonly proposals: readonly Proposal[];
+  readonly isLoading?: boolean;
+  readonly error?: unknown;
+  readonly onRetry?: () => void;
+  readonly canReview?: boolean;
+  readonly emptyTitle?: string;
+  readonly emptyDescription?: string;
+  readonly showProject?: boolean;
+  readonly rowLimit?: number;
+}>) {
   const { t, locale } = useT();
   const [reviewing, setReviewing] = useState<Proposal | null>(null);
   const rows = rowLimit ? proposals.slice(0, rowLimit) : proposals;

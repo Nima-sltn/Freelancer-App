@@ -33,7 +33,7 @@ export function CompleteProfileForm() {
   const { mutate: completeProfile, isPending } = useMutation({
     mutationFn: authService.completeProfile,
     onSuccess: (response) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.auth.profile });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.profile });
       toast.success(response.message);
 
       const user = response.user;

@@ -39,9 +39,7 @@ function MessagesPage() {
         id: `thread-${project._id}`,
         projectId: project._id,
         title: project.title,
-        participantIds: [user._id, freelancer?._id ?? owner?._id ?? `counterpart-${index}`].filter(
-          Boolean
-        ) as string[],
+        participantIds: [user._id, freelancer?._id ?? owner?._id ?? `counterpart-${index}`],
         unread: index === 0 ? 1 : 0,
         messages: [
           {

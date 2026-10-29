@@ -2,8 +2,8 @@ import type { HTMLAttributes, ReactNode } from "react";
 import { cx } from "@/lib/cx";
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  interactive?: boolean;
-  padding?: "none" | "sm" | "md" | "lg";
+  readonly interactive?: boolean;
+  readonly padding?: "none" | "sm" | "md" | "lg";
 }
 
 const PADDING = {
@@ -14,7 +14,7 @@ const PADDING = {
 } as const;
 
 /** Surface container. Composable — every piece is independently stylable. */
-export function Card({ interactive, padding = "md", className, children, ...rest }: CardProps) {
+export function Card({ interactive, padding = "md", className, children, ...rest }: Readonly<CardProps>) {
   return (
     <div
       className={cx("card", interactive && "card--interactive", PADDING[padding], className)}
@@ -30,13 +30,13 @@ export function CardHeader({
   actions,
   icon,
   className,
-}: {
-  title: ReactNode;
-  description?: ReactNode;
-  actions?: ReactNode;
-  icon?: ReactNode;
-  className?: string;
-}) {
+}: Readonly<{
+  readonly title: ReactNode;
+  readonly description?: ReactNode;
+  readonly actions?: ReactNode;
+  readonly icon?: ReactNode;
+  readonly className?: string;
+}>) {
   return (
     <div className={cx("flex items-start justify-between gap-4", className)}>
       <div className="flex min-w-0 items-start gap-3">
@@ -91,13 +91,13 @@ export function Section({
   actions,
   children,
   className,
-}: {
-  title: ReactNode;
-  description?: ReactNode;
-  actions?: ReactNode;
-  children: ReactNode;
-  className?: string;
-}) {
+}: Readonly<{
+  readonly title: ReactNode;
+  readonly description?: ReactNode;
+  readonly actions?: ReactNode;
+  readonly children: ReactNode;
+  readonly className?: string;
+}>) {
   return (
     <section className={cx("flex flex-col gap-4", className)} aria-label={String(title)}>
       <div className="flex flex-wrap items-end justify-between gap-3">

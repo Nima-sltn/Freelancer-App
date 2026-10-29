@@ -22,10 +22,10 @@ interface CategoryFormValues {
 function CategoryForm({
   category,
   onClose,
-}: {
-  category?: Category;
-  onClose: () => void;
-}) {
+}: Readonly<{
+  readonly category?: Category;
+  readonly onClose: () => void;
+}>) {
   const { t } = useT();
   const { create, update } = useCategoryMutations();
   const {
@@ -79,6 +79,74 @@ function CategoryForm({
 }
 
 /** Category management with live usage statistics per category. */
+function CategoriesList({
+  categories,
+  onEdit,
+  onDelete,
+}: Readonly<{
+  readonly categories: readonly Category[];
+  readonly onEdit: (cat: Category) => void;
+  readonly onDelete: (cat: Category) => void;
+}>) {
+  const { t } = useT();
+  return (
+    <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {categories.map((category) => (
+        <li key={category._id}>
+          <Card className="flex h-full flex-col">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="truncate text-sm font-black text-ink">
+                  {category.title}
+                </h3>
+                <p className="mt-0.5 text-xs text-ink-muted">{category.englishTitle}</p>
+              </div>
+              <span aria-hidden="true" className="text-2xl">
+                {category.icon ?? "🗂️"}
+              </span>
+            </div>
+
+            <dl className="mt-4 flex-1 space-y-1.5 text-xs text-ink-soft">
+              <div className="flex items-center justify-between">
+                <dt>{t("field.projects")}</dt>
+                <dd className="font-bold tabular-nums">
+                  {formatNumber(category.openProjects ?? 0)}
+                </dd>
+              </div>
+              <div className="flex items-center justify-between">
+                <dt>{t("stats.averageBudget")}</dt>
+                <dd className="font-bold tabular-nums">
+                  {formatCurrency(category.averageBudget ?? 0, { compact: true })}
+                </dd>
+              </div>
+            </dl>
+
+            <div className="mt-4 flex items-center justify-between border-t border-line pt-3">
+              <Badge tone="neutral">{t("categories.projectCount", { count: category.openProjects ?? 0 })}</Badge>
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  aria-label={t("common.edit")}
+                  onClick={() => onEdit(category)}
+                  className="grid h-8 w-8 place-items-center rounded-lg text-ink-soft hover:bg-surface-sunken">
+                  <IconEdit className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  aria-label={t("common.delete")}
+                  onClick={() => onDelete(category)}
+                  className="grid h-8 w-8 place-items-center rounded-lg text-danger hover:bg-danger/10">
+                  <IconTrash className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </Card>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function CategoriesPage() {
   const { t } = useT();
   const { categories, isLoading } = useCategories();
@@ -105,64 +173,19 @@ function CategoriesPage() {
         <Card>
           <SkeletonText lines={5} />
         </Card>
-      ) : categories.length === 0 ? (
+      ) : null}
+
+      {!isLoading && categories.length === 0 ? (
         <Card className="text-center text-sm text-ink-muted">{t("categories.empty")}</Card>
-      ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {categories.map((category) => (
-            <li key={category._id}>
-              <Card className="flex h-full flex-col">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="truncate text-sm font-black text-ink">
-                      {category.title}
-                    </h3>
-                    <p className="mt-0.5 text-xs text-ink-muted">{category.englishTitle}</p>
-                  </div>
-                  <span aria-hidden="true" className="text-2xl">
-                    {category.icon ?? "🗂️"}
-                  </span>
-                </div>
+      ) : null}
 
-                <dl className="mt-4 flex-1 space-y-1.5 text-xs text-ink-soft">
-                  <div className="flex items-center justify-between">
-                    <dt>{t("field.projects")}</dt>
-                    <dd className="font-bold tabular-nums">
-                      {formatNumber(category.openProjects ?? 0)}
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt>{t("stats.averageBudget")}</dt>
-                    <dd className="font-bold tabular-nums">
-                      {formatCurrency(category.averageBudget ?? 0, { compact: true })}
-                    </dd>
-                  </div>
-                </dl>
-
-                <div className="mt-4 flex items-center justify-between border-t border-line pt-3">
-                  <Badge tone="neutral">{t("categories.projectCount", { count: category.openProjects ?? 0 })}</Badge>
-                  <div className="flex gap-1">
-                    <button
-                      type="button"
-                      aria-label={t("common.edit")}
-                      onClick={() => setEditing(category)}
-                      className="grid h-8 w-8 place-items-center rounded-lg text-ink-soft hover:bg-surface-sunken">
-                      <IconEdit className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      aria-label={t("common.delete")}
-                      onClick={() => setDeleting(category)}
-                      className="grid h-8 w-8 place-items-center rounded-lg text-danger hover:bg-danger/10">
-                      <IconTrash className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              </Card>
-            </li>
-          ))}
-        </ul>
-      )}
+      {!isLoading && categories.length > 0 ? (
+        <CategoriesList
+          categories={categories}
+          onEdit={setEditing}
+          onDelete={setDeleting}
+        />
+      ) : null}
 
       <Modal isOpen={creating} onClose={() => setCreating(false)} title={t("categories.create")}>
         <CategoryForm onClose={() => setCreating(false)} />

@@ -4,13 +4,13 @@ import { env } from "@/config/env";
 import { translateDirect } from "@/store/i18n";
 
 export interface FeatureErrorBoundaryProps {
-  children: ReactNode;
+  readonly children: ReactNode;
   /** Feature identifier used for error reporting and header display */
-  feature?: string;
+  readonly feature?: string;
   /** Custom fallback component if desired */
-  fallback?: ReactNode;
+  readonly fallback?: ReactNode;
   /** Optional callback fired when an error is caught */
-  onError?: (error: Error, info: ErrorInfo) => void;
+  readonly onError?: (error: Error, info: ErrorInfo) => void;
 }
 
 interface FeatureErrorBoundaryState {
@@ -41,8 +41,9 @@ export class FeatureErrorBoundary extends Component<
   override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     if (env.isDev) {
       // eslint-disable-next-line no-console
+      const featureTag = this.props.feature ? `:${this.props.feature}` : "";
       console.error(
-        `[FeatureErrorBoundary${this.props.feature ? `:${this.props.feature}` : ""}]`,
+        `[FeatureErrorBoundary${featureTag}]`,
         error,
         errorInfo
       );
@@ -50,7 +51,7 @@ export class FeatureErrorBoundary extends Component<
     this.props.onError?.(error, errorInfo);
   }
 
-  private handleRetry = () => {
+  private readonly handleRetry = () => {
     this.setState({ hasError: false, error: null });
   };
 

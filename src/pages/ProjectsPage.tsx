@@ -1,32 +1,87 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useUser } from "@/features/auth";
+import { useProjects, useOwnerProjects } from "@/features/projects/useProjects";
+import { useCategories } from "@/features/categories/useCategories";
+import { useQueryParams } from "@/hooks/useQueryParams";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { useT } from "@/store/i18n";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
-import { SegmentedControl } from "@/components/ui/Tabs";
 import { Pagination } from "@/components/ui/Pagination";
-import { IconGrid, IconList, IconPlus } from "@/components/ui/icons";
-import { useUser } from "@/features/auth";
-import { useCategories } from "@/features/categories/useCategories";
-import { useProjects, useOwnerProjects } from "@/features/projects/useProjects";
-import { filterProjects, paginate, sortProjects } from "@/entities/project/metrics";
+import { SegmentedControl } from "@/components/ui/Tabs";
 import { ProjectFiltersBar } from "@/features/projects/ProjectFiltersBar";
 import { OwnerProjectsTable } from "@/features/projects/OwnerProjectsTable";
 import { BrowseProjects } from "@/features/projects/BrowseProjects";
 import { ProjectForm } from "@/features/projects/ProjectForm";
-import { useQueryParams } from "@/hooks/useQueryParams";
-import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { useT } from "@/store/i18n";
+import { filterProjects, paginate, sortProjects } from "@/entities/project/metrics";
 import type { ProjectFilters } from "@/types";
 
 type ViewMode = "table" | "grid";
 
+function IconList() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+}
+
+function IconGrid() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+      />
+    </svg>
+  );
+}
+
+function IconPlus() {
+  return (
+    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+    </svg>
+  );
+}
+
+function getRolePrefix(role?: string): string {
+  if (role === "OWNER") return "/owner";
+  if (role === "ADMIN") return "/admin";
+  return "/freelancer";
+}
+
+function getProjectsPageDescription(role: string | undefined, isOwner: boolean, t: (k: string) => string): string {
+  if (isOwner) return t("projects.subtitle");
+  if (role === "FREELANCER") return t("dashboard.recommendationsHint");
+  return t("analytics.subtitle");
+}
+
+function useProjectsPageData(isOwner: boolean) {
+  const ownerQuery = useOwnerProjects({});
+  const publishedQuery = useProjects({ status: "OPEN" });
+
+  const source = isOwner ? ownerQuery.projects : publishedQuery.projects;
+  const isLoading = isOwner ? ownerQuery.isLoading : publishedQuery.isLoading;
+  const error = isOwner ? ownerQuery.error : publishedQuery.error;
+  const isFetching = isOwner ? ownerQuery.isFetching : publishedQuery.isFetching;
+
+  const refetch = () => {
+    if (isOwner) {
+      ownerQuery.refetch();
+    } else {
+      publishedQuery.refetch();
+    }
+  };
+
+  return { source, isLoading, error, isFetching, refetch };
+}
+
 /**
- * Projects page.
- *
- * One route, three meanings: clients manage their portfolio, freelancers browse
- * and apply, admins oversee everything. Filter state, the view mode and the
- * current page all live in the URL, so any view can be shared or bookmarked.
+ * Projects catalogue and management surface.
  */
 function ProjectsPage() {
   const { t } = useT();
@@ -37,7 +92,7 @@ function ProjectsPage() {
   const role = user?.role;
   const isOwner = role === "OWNER";
   const isAdmin = role === "ADMIN";
-  const prefix = isOwner ? "/owner" : isAdmin ? "/admin" : "/freelancer";
+  const prefix = getRolePrefix(role);
 
   useDocumentTitle(isOwner ? t("projects.myTitle") : t("projects.listTitle"));
 
@@ -58,12 +113,8 @@ function ProjectsPage() {
   };
 
   const categories = useCategories();
-  const ownerQuery = useOwnerProjects({});
-  const publishedQuery = useProjects({ status: "OPEN" });
-
-  const source = isOwner ? ownerQuery.projects : publishedQuery.projects;
-  const isLoading = userLoading || (isOwner ? ownerQuery.isLoading : publishedQuery.isLoading);
-  const error = isOwner ? ownerQuery.error : publishedQuery.error;
+  const { source, isLoading: dataLoading, error, isFetching, refetch } = useProjectsPageData(isOwner);
+  const isLoading = userLoading || dataLoading;
 
   const filters: ProjectFilters = {
     search: params.values.search,
@@ -80,13 +131,20 @@ function ProjectsPage() {
 
   const paged = paginate(filtered, Number(params.values.page), Number(params.values.pageSize));
 
+  const handleCloseModal = () => {
+    setCreating(false);
+    if (searchParams.get("new")) {
+      const next = new URLSearchParams(searchParams);
+      next.delete("new");
+      setSearchParams(next, { replace: true });
+    }
+  };
+
   return (
     <div>
       <PageHeader
         title={isOwner ? t("projects.myTitle") : t("projects.listTitle")}
-        description={
-          isOwner ? t("projects.subtitle") : role === "FREELANCER" ? t("dashboard.recommendationsHint") : t("analytics.subtitle")
-        }
+        description={getProjectsPageDescription(role, isOwner, t)}
         icon={<IconGrid />}
         actions={
           <>
@@ -122,17 +180,14 @@ function ProjectsPage() {
             ? categories.options
             : categories.filterOptions.map((option) => ({
                 label: option.label,
-                value: option.value,
+                value: String(option.value),
               }))
         }
         activeCount={params.activeCount}
         onChange={(patch) => params.set(patch)}
         onReset={params.reset}
-        onRefresh={() => {
-          if (isOwner) void ownerQuery.refetch();
-          else void publishedQuery.refetch();
-        }}
-        isFetching={isOwner ? ownerQuery.isFetching : publishedQuery.isFetching}
+        onRefresh={refetch}
+        isFetching={isFetching}
       />
 
       {viewMode === "grid" ? (
@@ -141,7 +196,7 @@ function ProjectsPage() {
           user={user}
           isLoading={isLoading}
           error={error}
-          onRetry={() => (isOwner ? ownerQuery.refetch() : publishedQuery.refetch())}
+          onRetry={refetch}
           emptyTitle={t("projects.emptyTitle")}
           emptyDescription={isOwner ? t("projects.emptyOwner") : t("projects.emptyFreelancer")}
           limit={Number(params.values.pageSize)}
@@ -153,7 +208,7 @@ function ProjectsPage() {
             categories={categories.options}
             isLoading={isLoading}
             error={error}
-            onRetry={() => (isOwner ? ownerQuery.refetch() : publishedQuery.refetch())}
+            onRetry={refetch}
           />
 
           {filtered.length > Number(params.values.pageSize) ? (
@@ -172,26 +227,12 @@ function ProjectsPage() {
 
       <Modal
         isOpen={creating}
-        onClose={() => {
-          setCreating(false);
-          if (searchParams.get("new")) {
-            const next = new URLSearchParams(searchParams);
-            next.delete("new");
-            setSearchParams(next, { replace: true });
-          }
-        }}
+        onClose={handleCloseModal}
         title={t("projects.create")}
         size="lg">
         <ProjectForm
           categories={categories.options}
-          onClose={() => {
-            setCreating(false);
-            if (searchParams.get("new")) {
-              const next = new URLSearchParams(searchParams);
-              next.delete("new");
-              setSearchParams(next, { replace: true });
-            }
-          }}
+          onClose={handleCloseModal}
         />
       </Modal>
 

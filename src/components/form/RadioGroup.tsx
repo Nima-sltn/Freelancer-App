@@ -3,24 +3,24 @@ import type { ReactNode } from "react";
 import { cx } from "@/lib/cx";
 
 export interface RadioOption {
-  value: string;
-  label: string;
-  description?: string;
-  icon?: ReactNode;
+  readonly value: string;
+  readonly label: string;
+  readonly description?: string;
+  readonly icon?: ReactNode;
 }
 
 export interface RadioGroupProps<T extends FieldValues> {
-  name: Path<T>;
-  options: RadioOption[];
-  register: UseFormRegister<T>;
-  watch: UseFormWatch<T>;
-  errors?: FieldErrors<T>;
-  rules?: RegisterOptions<T, Path<T>>;
-  label?: ReactNode;
+  readonly name: Path<T>;
+  readonly options: readonly RadioOption[];
+  readonly register: UseFormRegister<T>;
+  readonly watch: UseFormWatch<T>;
+  readonly errors?: FieldErrors<T>;
+  readonly rules?: RegisterOptions<T, Path<T>>;
+  readonly label?: ReactNode;
   /** Renders options as selectable cards instead of inline radios. */
-  variant?: "inline" | "cards";
-  required?: boolean;
-  className?: string;
+  readonly variant?: "inline" | "cards";
+  readonly required?: boolean;
+  readonly className?: string;
 }
 
 /**
@@ -42,7 +42,7 @@ export function RadioGroup<T extends FieldValues>({
   variant = "inline",
   required,
   className,
-}: RadioGroupProps<T>) {
+}: Readonly<RadioGroupProps<T>>) {
   const error = errors?.[name]?.message as string | undefined;
   const current = watch(name);
 

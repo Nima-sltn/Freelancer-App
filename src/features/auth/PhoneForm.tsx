@@ -9,14 +9,16 @@ export interface PhoneFormValues {
   phoneNumber: string;
 }
 
+export interface PhoneFormProps {
+  readonly onSubmit: (phoneNumber: string) => void;
+  readonly isPending: boolean;
+}
+
 /** Step 1 of sign-in: collect and validate the mobile number. */
 export function PhoneForm({
   onSubmit,
   isPending,
-}: {
-  onSubmit: (phoneNumber: string) => void;
-  isPending: boolean;
-}) {
+}: Readonly<PhoneFormProps>) {
   const { t } = useT();
   const {
     register,

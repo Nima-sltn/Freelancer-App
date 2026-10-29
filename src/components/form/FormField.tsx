@@ -26,13 +26,13 @@ export function useFieldAria(
 }
 
 export interface FormFieldProps {
-  name: string;
-  label?: ReactNode;
-  required?: boolean;
-  hint?: ReactNode;
-  error?: ReactNode;
-  children: ReactNode;
-  className?: string;
+  readonly name: string;
+  readonly label?: ReactNode;
+  readonly required?: boolean;
+  readonly hint?: ReactNode;
+  readonly error?: ReactNode;
+  readonly children: ReactNode;
+  readonly className?: string;
 }
 
 export function FormField({
@@ -43,7 +43,7 @@ export function FormField({
   error,
   children,
   className,
-}: FormFieldProps) {
+}: Readonly<FormFieldProps>) {
   return (
     <div className={cx("w-full", className)}>
       {label ? (

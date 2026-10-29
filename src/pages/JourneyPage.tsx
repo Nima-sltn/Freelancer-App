@@ -6,13 +6,20 @@ import { Callout } from "@/components/ui/Callout";
 import { Timeline } from "@/components/ui/Timeline";
 import { StatCard } from "@/components/ui/StatCard";
 import { IconPalette, IconRefresh } from "@/components/ui/icons";
-import { useTransactions } from "@/store/transaction";
+import { useTransactions, type JournalEntry } from "@/store/transaction";
 import { describeImpact } from "@/entities/activity";
 import type { DomainId, DomainImpact } from "@/entities/activity";
 import { useT } from "@/store/i18n";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { formatNumber } from "@/lib/format/numbers";
 import { formatRelative } from "@/lib/format/dates";
+
+function getJournalEntryTone(state: JournalEntry["state"]): "success" | "danger" | "warning" | "info" {
+  if (state === "committed") return "success";
+  if (state === "rolled-back") return "danger";
+  if (state === "queued") return "warning";
+  return "info";
+}
 
 /**
  * Transaction inspector — the ACID guarantees, made visible.
@@ -47,21 +54,15 @@ function JourneyPage() {
 
   const items = [...entries]
     .reverse()
-    .map((entry) => ({
-      id: entry.id,
-      title: t(entry.labelKey, entry.labelParams),
-      description: `${entry.resource} • ${t(`tx.state.${entry.state}`)}${
-        entry.error ? ` — ${entry.error}` : ""
-      }`,
-      at: entry.createdAt,
-      tone:
-        entry.state === "committed"
-          ? ("success" as const)
-          : entry.state === "rolled-back"
-            ? ("danger" as const)
-            : entry.state === "queued"
-              ? ("warning" as const)
-              : ("info" as const),
+    .map((entry) => {
+      const stateLabel = t(`tx.state.${entry.state}`);
+      const errorSuffix = entry.error ? ` — ${entry.error}` : "";
+      return {
+        id: entry.id,
+        title: t(entry.labelKey, entry.labelParams),
+        description: `${entry.resource} • ${stateLabel}${errorSuffix}`,
+        at: entry.createdAt,
+        tone: getJournalEntryTone(entry.state),
       meta: (
         <span className="flex flex-wrap items-center gap-2">
           {describeImpact({ resource: entry.resource, labelKey: entry.labelKey, state: entry.state }).map(
@@ -75,18 +76,19 @@ function JourneyPage() {
             <Badge tone="warning">×{formatNumber(entry.attempts)}</Badge>
           ) : null}
           {entry.state === "queued" ? (
-            <Button variant="outline" size="sm" onClick={() => void retry(entry.id)}>
+            <Button variant="outline" size="sm" onClick={() => retry(entry.id)}>
               {t("tx.retry")}
             </Button>
           ) : null}
           {entry.state === "committed" && entry.reversible ? (
-            <Button variant="outline" size="sm" onClick={() => void undo(entry.id)}>
+            <Button variant="outline" size="sm" onClick={() => undo(entry.id)}>
               {t("tx.undo")}
             </Button>
           ) : null}
         </span>
       ),
-    }));
+    };
+  });
 
   return (
     <div className="space-y-6">
@@ -101,7 +103,7 @@ function JourneyPage() {
               size="sm"
               leadingIcon={<IconRefresh />}
               disabled={queued === 0}
-              onClick={() => void flush()}>
+              onClick={() => flush()}>
               {t("offline.synced")}
             </Button>
             <Button variant="ghost" size="sm" onClick={clearHistory}>
@@ -150,7 +152,7 @@ function JourneyPage() {
             title={t("tx.title")}
             description={t("tx.journalSize", { count: formatNumber(entries.length) })}
             actions={
-              <Button variant="outline" size="sm" onClick={() => void undo()}>
+              <Button variant="outline" size="sm" onClick={() => undo()}>
                 {t("tx.undoLast")}
               </Button>
             }

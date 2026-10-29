@@ -41,7 +41,7 @@ export function useCategories(): CategoriesState {
     isLoading: query.isLoading,
     error: query.error,
     refetch: () => {
-      void query.refetch();
+      query.refetch();
     },
   };
 }
@@ -52,7 +52,7 @@ export function useCategoryMutations() {
   const { t } = useT();
 
   const invalidate = () => {
-    void queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
   };
 
   const create = useMutation({

@@ -14,15 +14,15 @@ const WIDTHS = {
 } as const;
 
 interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  description?: string;
-  children: ReactNode;
-  footer?: ReactNode;
-  size?: keyof typeof WIDTHS;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly title: string;
+  readonly description?: string;
+  readonly children: ReactNode;
+  readonly footer?: ReactNode;
+  readonly size?: keyof typeof WIDTHS;
   /** Prevent closing by backdrop click / Escape (used for destructive flows). */
-  dismissable?: boolean;
+  readonly dismissable?: boolean;
 }
 
 /**
@@ -41,7 +41,7 @@ export function Modal({
   footer,
   size = "md",
   dismissable = true,
-}: ModalProps) {
+}: Readonly<ModalProps>) {
   const { t } = useT();
   return (
     <Dialog
@@ -89,13 +89,13 @@ export function Drawer({
   title,
   children,
   side = "end",
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  children: ReactNode;
-  side?: "start" | "end";
-}) {
+}: Readonly<{
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly title: string;
+  readonly children: ReactNode;
+  readonly side?: "start" | "end";
+}>) {
   const { dir, t } = useT();
   const slidesFromLeft = (side === "end") === (dir === "rtl");
 
@@ -142,17 +142,17 @@ export function ConfirmDialog({
   cancelLabel,
   tone = "danger",
   isLoading,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  message: ReactNode;
-  confirmLabel?: string;
-  cancelLabel?: string;
-  tone?: "danger" | "primary";
-  isLoading?: boolean;
-}) {
+}: Readonly<{
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly onConfirm: () => void;
+  readonly title: string;
+  readonly message: ReactNode;
+  readonly confirmLabel?: string;
+  readonly cancelLabel?: string;
+  readonly tone?: "danger" | "primary";
+  readonly isLoading?: boolean;
+}>) {
   const { t } = useT();
   const resolvedConfirm = confirmLabel ?? t("common.confirm");
   const resolvedCancel = cancelLabel ?? t("common.cancel");

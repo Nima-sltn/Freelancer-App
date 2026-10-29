@@ -20,13 +20,13 @@ export function Callout({
   children,
   actions,
   className,
-}: {
-  tone?: CalloutTone;
-  title?: ReactNode;
-  children: ReactNode;
-  actions?: ReactNode;
-  className?: string;
-}) {
+}: Readonly<{
+  readonly tone?: CalloutTone;
+  readonly title?: ReactNode;
+  readonly children: ReactNode;
+  readonly actions?: ReactNode;
+  readonly className?: string;
+}>) {
   const config = CALLOUT_TONES[tone];
   return (
     <div
@@ -47,11 +47,11 @@ export function CopyButton({
   value,
   label,
   className,
-}: {
-  value: string;
-  label?: string;
-  className?: string;
-}) {
+}: Readonly<{
+  readonly value: string;
+  readonly label?: string;
+  readonly className?: string;
+}>) {
   const { t } = useT();
   const [copied, setCopied] = useState(false);
   const displayLabel = label ?? t("common.copy");

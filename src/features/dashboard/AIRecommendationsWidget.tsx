@@ -9,11 +9,24 @@ import { useT } from "@/store/i18n";
 import type { Project, User } from "@/types";
 
 interface AIRecommendationsWidgetProps {
-  projects: Project[];
-  user: User;
+  readonly projects: readonly Project[];
+  readonly user: User;
 }
 
-export function AIRecommendationsWidget({ projects, user }: AIRecommendationsWidgetProps) {
+function getTierTone(tier: AIProjectRecommendation["tier"]): "success" | "primary" | "warning" | "neutral" {
+  if (tier === "strong-match") return "success";
+  if (tier === "recommended") return "primary";
+  if (tier === "moderate") return "warning";
+  return "neutral";
+}
+
+function getTierTranslationKey(tier: AIProjectRecommendation["tier"]): "matching.tier.excellent" | "matching.tier.good" | "matching.tier.fair" {
+  if (tier === "strong-match") return "matching.tier.excellent";
+  if (tier === "recommended") return "matching.tier.good";
+  return "matching.tier.fair";
+}
+
+export function AIRecommendationsWidget({ projects, user }: Readonly<AIRecommendationsWidgetProps>) {
   const { t } = useT();
   const recommendations = useMemo(() => {
     return rankProjectsWithAI(projects, user).slice(0, 3);
@@ -28,7 +41,7 @@ export function AIRecommendationsWidget({ projects, user }: AIRecommendationsWid
         description={t("ai.recommendationsSubtitle")}
       />
       <CardContent className="mt-4 space-y-4">
-        {recommendations.map((rec) => (
+        {recommendations.map((rec: AIProjectRecommendation) => (
           <RecommendationCard key={rec.project._id} rec={rec} />
         ))}
       </CardContent>
@@ -36,20 +49,13 @@ export function AIRecommendationsWidget({ projects, user }: AIRecommendationsWid
   );
 }
 
-function RecommendationCard({ rec }: { rec: AIProjectRecommendation }) {
+function RecommendationCard({ rec }: Readonly<{ readonly rec: AIProjectRecommendation }>) {
   const { t, locale } = useT();
   const { project, recommendationScore, tier, bidAdvice, explanation, matchingSkills, skillGaps } = rec;
   const isEn = locale === "en";
   const displayTitle = isEn && project.titleEn ? project.titleEn : project.title;
 
-  const tierBadgeTone: "success" | "primary" | "warning" | "neutral" =
-    tier === "strong-match"
-      ? "success"
-      : tier === "recommended"
-      ? "primary"
-      : tier === "moderate"
-      ? "warning"
-      : "neutral";
+  const tierBadgeTone = getTierTone(tier);
 
   return (
     <div className="rounded-xl border border-line bg-surface p-4 transition-all hover:border-primary-500/40 hover:shadow-xs">
@@ -70,7 +76,7 @@ function RecommendationCard({ rec }: { rec: AIProjectRecommendation }) {
 
         <div className="flex items-center gap-2">
           <Badge tone={tierBadgeTone}>
-            {t(`matching.tier.${tier === "strong-match" ? "excellent" : tier === "recommended" ? "good" : "fair"}`)} ({formatNumber(recommendationScore)}{isEn ? "%" : "٪"})
+            {t(getTierTranslationKey(tier))} ({formatNumber(recommendationScore)}{isEn ? "%" : "٪"})
           </Badge>
         </div>
       </div>

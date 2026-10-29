@@ -2,14 +2,14 @@ import { useMemo } from "react";
 import { useT } from "@/store/i18n";
 import { buildSmoothPath, createScale } from "./utils";
 
-interface SparklineProps {
-  values: number[];
-  width?: number;
-  height?: number;
-  color?: string;
+export interface SparklineProps {
+  readonly values: readonly number[];
+  readonly width?: number;
+  readonly height?: number;
+  readonly color?: string;
   /** Renders a soft gradient area under the line. */
-  filled?: boolean;
-  label?: string;
+  readonly filled?: boolean;
+  readonly label?: string;
 }
 
 /** Compact trend indicator used inside stat cards and table rows. */
@@ -20,7 +20,7 @@ export function Sparkline({
   color = "rgb(var(--color-primary-600))",
   filled = true,
   label,
-}: SparklineProps) {
+}: Readonly<SparklineProps>) {
   const { t } = useT();
   const paths = useMemo(() => {
     if (values.length === 0) return null;
@@ -41,9 +41,9 @@ export function Sparkline({
       width={width}
       height={height}
       viewBox={`0 0 ${width} ${height}`}
-      role="img"
       aria-label={label ?? t("charts.sparklineLabel")}
       className="overflow-visible">
+      <title>{label ?? t("charts.sparklineLabel")}</title>
       {filled ? <path d={paths.area} fill={color} opacity="0.12" /> : null}
       <path
         d={paths.line}

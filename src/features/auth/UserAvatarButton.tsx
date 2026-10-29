@@ -2,8 +2,13 @@ import { Avatar } from "@/components/ui/Avatar";
 import { useT } from "@/store/i18n";
 import type { User } from "@/types";
 
+export interface UserAvatarButtonProps {
+  readonly user: User;
+  readonly size?: "xs" | "sm" | "md";
+}
+
 /** Compact identity chip used in headers and comment threads. */
-export function UserAvatarButton({ user, size = "sm" }: { user: User; size?: "xs" | "sm" | "md" }) {
+export function UserAvatarButton({ user, size = "sm" }: Readonly<UserAvatarButtonProps>) {
   const { t } = useT();
   const name = user.name || t("auth.guest");
 

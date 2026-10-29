@@ -13,19 +13,20 @@ import { formatRelative } from "@/lib/format/dates";
 import { dictionaries, fa, type TranslationKey } from "./translations";
 
 export type TranslateParams = Record<string, string | number | undefined>;
+export type AnyTranslationKey = TranslationKey | (string & {});
 
 export interface I18nContextValue {
-  locale: Locale;
-  dir: "rtl" | "ltr";
-  isRtl: boolean;
-  setLocale: (locale: Locale) => void;
-  toggleLocale: () => void;
+  readonly locale: Locale;
+  readonly dir: "rtl" | "ltr";
+  readonly isRtl: boolean;
+  readonly setLocale: (locale: Locale) => void;
+  readonly toggleLocale: () => void;
   /** Translates a key and interpolates `{placeholder}` tokens. */
-  t: (key: TranslationKey | string, params?: TranslateParams) => string;
+  readonly t: (key: AnyTranslationKey, params?: TranslateParams) => string;
   /** Translates a pluralized key with count. */
-  tp: (key: TranslationKey | string, count: number, params?: TranslateParams) => string;
+  readonly tp: (key: AnyTranslationKey, count: number, params?: TranslateParams) => string;
   /** Formats a relative time string according to current locale. */
-  tRelative: (date: string | number | Date) => string;
+  readonly tRelative: (date: string | number | Date) => string;
 }
 
 const I18nContext = createContext<I18nContextValue | undefined>(undefined);
@@ -49,6 +50,11 @@ function interpolate(template: string, params?: TranslateParams): string {
   );
 }
 
+export interface I18nProviderProps {
+  readonly children: ReactNode;
+  readonly initialLocale?: Locale;
+}
+
 /**
  * Language and direction provider.
  *
@@ -57,17 +63,20 @@ function interpolate(template: string, params?: TranslateParams): string {
  * dictionary and the module-level locale used by pure formatters (`Intl`
  * number, currency and Jalali/Gregorian date rendering).
  */
+function getPluralForm(count: number): "one" | "zero" | "other" {
+  if (count === 1) return "one";
+  if (count === 0) return "zero";
+  return "other";
+}
+
 export function I18nProvider({
   children,
   initialLocale,
-}: {
-  children: ReactNode;
-  initialLocale?: Locale;
-}) {
-  const [locale, setLocaleState] = useState<Locale>(initialLocale ?? readStoredLocale);
+}: Readonly<I18nProviderProps>) {
+  const [locale, setLocale] = useState<Locale>(initialLocale ?? readStoredLocale);
 
-  const setLocale = useCallback((next: Locale) => {
-    setLocaleState(next);
+  const updateLocale = useCallback((next: Locale) => {
+    setLocale(next);
     try {
       window.localStorage.setItem(`fh.${STORAGE_KEY}`, JSON.stringify(next));
     } catch {
@@ -76,8 +85,8 @@ export function I18nProvider({
   }, []);
 
   const toggleLocale = useCallback(() => {
-    setLocale(locale === "fa" ? "en" : "fa");
-  }, [locale, setLocale]);
+    updateLocale(locale === "fa" ? "en" : "fa");
+  }, [locale, updateLocale]);
 
   const dir = computeIsRtl(locale) ? "rtl" : "ltr";
 
@@ -100,7 +109,7 @@ export function I18nProvider({
   const tp = useCallback<I18nContextValue["tp"]>(
     (key, count, params) => {
       const dictionary = dictionaries[locale] ?? fa;
-      const pluralForm = count === 1 ? "one" : count === 0 ? "zero" : "other";
+      const pluralForm = getPluralForm(count);
       const pluralKey = `${key}_${pluralForm}` as TranslationKey;
       const template =
         dictionary[pluralKey] ??
@@ -125,13 +134,13 @@ export function I18nProvider({
       locale,
       dir,
       isRtl: computeIsRtl(locale),
-      setLocale,
+      setLocale: updateLocale,
       toggleLocale,
       t,
       tp,
       tRelative,
     }),
-    [locale, dir, setLocale, toggleLocale, t, tp, tRelative]
+    [locale, dir, updateLocale, toggleLocale, t, tp, tRelative]
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

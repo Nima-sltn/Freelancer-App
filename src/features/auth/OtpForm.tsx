@@ -24,14 +24,14 @@ export function OtpForm({
   onVerify,
   onResend,
   onBack,
-}: {
-  phoneNumber: string;
-  isPending: boolean;
-  otpResponse?: OtpResponse;
-  onVerify: (otp: string) => void;
-  onResend: () => void;
-  onBack: () => void;
-}) {
+}: Readonly<{
+  readonly phoneNumber: string;
+  readonly isPending: boolean;
+  readonly otpResponse?: OtpResponse;
+  readonly onVerify: (otp: string) => void;
+  readonly onResend: () => void;
+  readonly onBack: () => void;
+}>) {
   const { t } = useT();
   const [otp, setOtp] = useState("");
   const [seconds, setSeconds] = useState(RESEND_SECONDS);

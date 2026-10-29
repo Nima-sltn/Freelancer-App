@@ -3,26 +3,98 @@ import toast from "react-hot-toast";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Callout } from "@/components/ui/Callout";
-import { useT } from "@/store/i18n";
+import { PROPOSAL_STATUS } from "@/config/constants";
+import useProposalMutations from "./useProposalMutations";
 import { formatCurrency } from "@/lib/format/numbers";
 import { truncate } from "@/lib/format/text";
-import { PROPOSAL_STATUS } from "@/config/constants";
 import { cx } from "@/lib/cx";
+import { useT } from "@/store/i18n";
 import type { Proposal, ProposalStatus } from "@/types";
-import useProposalMutations from "./useProposalMutations";
 
 const COLUMNS: ProposalStatus[] = [1, 2, 0];
 
+function getColumnBadgeTone(tone: string): "success" | "danger" | "warning" {
+  if (tone === "success") return "success";
+  if (tone === "danger") return "danger";
+  return "warning";
+}
+
+export interface ProposalBoardProps {
+  readonly proposals: readonly Proposal[];
+  readonly isLoading?: boolean;
+}
+
+interface ProposalBoardCardProps {
+  readonly proposal: Proposal;
+  readonly isEn: boolean;
+  readonly isDragging: boolean;
+  readonly isBusy: boolean;
+  readonly onDragStart: (id: string) => void;
+  readonly onDragEnd: () => void;
+  readonly onMove: (proposal: Proposal, target: ProposalStatus) => void;
+}
+
+function ProposalBoardCard({
+  proposal,
+  isEn,
+  isDragging,
+  isBusy,
+  onDragStart,
+  onDragEnd,
+  onMove,
+}: Readonly<ProposalBoardCardProps>) {
+  const { t } = useT();
+  const desc = isEn && proposal.descriptionEn ? proposal.descriptionEn : proposal.description;
+  const projectTitle = isEn && proposal.project?.titleEn ? proposal.project.titleEn : (proposal.project?.title ?? truncate(desc, 40));
+
+  return (
+    <article
+      draggable
+      onDragStart={() => onDragStart(proposal._id)}
+      onDragEnd={onDragEnd}
+      className={cx(
+        "cursor-grab rounded-lg border border-line bg-surface p-3 shadow-sm transition-all active:cursor-grabbing",
+        isDragging && "opacity-50"
+      )}>
+      <p className="text-xs font-bold text-ink">
+        {projectTitle}
+      </p>
+      <p className="mt-1 text-[0.7rem] leading-5 text-ink-muted">
+        {truncate(desc, 70)}
+      </p>
+
+      <dl className="mt-3 flex items-center justify-between text-xs font-bold">
+        <dt className="sr-only">{t("field.price")}</dt>
+        <dd className="text-primary-700">
+          {formatCurrency(proposal.price)}
+        </dd>
+        <dt className="sr-only">{t("field.duration")}</dt>
+        <dd className="text-ink-muted">
+          {proposal.duration} {t("common.days")}
+        </dd>
+      </dl>
+
+      <div className="mt-3 flex gap-1.5">
+        {COLUMNS.filter((target) => target !== proposal.status).map((target) => (
+          <Button
+            key={target}
+            variant="outline"
+            size="sm"
+            disabled={isBusy}
+            onClick={() => onMove(proposal, target)}
+            className="flex-1 !px-2 !text-[0.65rem]">
+            → {t(PROPOSAL_STATUS[target].labelKey)}
+          </Button>
+        ))}
+      </div>
+    </article>
+  );
+}
+
 /**
- * Kanban view of the proposal pipeline.
- *
- * Drag & drop uses the native HTML5 API (no dependency, no layout thrash). Every
- * drag has an equivalent keyboard path — the card exposes move buttons — because
- * drag-only interfaces are unusable with a keyboard or a screen reader. Status
- * changes flow through the transaction manager, so a rejected write animates the
- * card back to its column.
+ * Kanban-style board for managing proposals through their lifecycle.
  */
-export function ProposalBoard({ proposals, isLoading }: { proposals: Proposal[]; isLoading?: boolean }) {
+export function ProposalBoard({ proposals, isLoading }: Readonly<ProposalBoardProps>) {
   const { t, locale } = useT();
   const { changeStatus, isBusy } = useProposalMutations();
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -45,7 +117,7 @@ export function ProposalBoard({ proposals, isLoading }: { proposals: Proposal[];
       toast.error(t("common.errorHint"));
       return;
     }
-    void changeStatus(
+    changeStatus(
       proposal._id,
       proposal.projectId ?? proposal.project?._id ?? "",
       status,
@@ -99,7 +171,7 @@ export function ProposalBoard({ proposals, isLoading }: { proposals: Proposal[];
               )}>
               <header className="flex items-center justify-between gap-2">
                 <h2 className="text-sm font-black text-ink">{t(meta.labelKey)}</h2>
-                <Badge tone={meta.tone === "success" ? "success" : meta.tone === "danger" ? "danger" : "warning"}>
+                <Badge tone={getColumnBadgeTone(meta.tone)}>
                   {items.length}
                 </Badge>
               </header>
@@ -110,53 +182,19 @@ export function ProposalBoard({ proposals, isLoading }: { proposals: Proposal[];
                 </p>
               ) : (
                 <ul className="flex flex-col gap-3">
-                  {items.map((proposal) => {
-                    const desc = isEn && proposal.descriptionEn ? proposal.descriptionEn : proposal.description;
-                    const projectTitle = isEn && proposal.project?.titleEn ? proposal.project.titleEn : (proposal.project?.title ?? truncate(desc, 40));
-                    return (
-                      <li key={proposal._id}>
-                        <article
-                          draggable
-                          onDragStart={() => setDraggingId(proposal._id)}
-                          onDragEnd={() => setDraggingId(null)}
-                          className={cx(
-                            "cursor-grab rounded-lg border border-line bg-surface p-3 shadow-sm transition-all active:cursor-grabbing",
-                            draggingId === proposal._id && "opacity-50"
-                          )}>
-                          <p className="text-xs font-bold text-ink">
-                            {projectTitle}
-                          </p>
-                          <p className="mt-1 text-[0.7rem] leading-5 text-ink-muted">
-                            {truncate(desc, 70)}
-                          </p>
-                        <dl className="mt-2 flex items-center justify-between text-[0.7rem]">
-                          <dt className="sr-only">{t("field.price")}</dt>
-                          <dd className="font-black text-ink tabular-nums">
-                            {formatCurrency(proposal.price)}
-                          </dd>
-                          <dt className="sr-only">{t("field.duration")}</dt>
-                          <dd className="text-ink-muted">
-                            {proposal.duration} {t("common.days")}
-                          </dd>
-                        </dl>
-
-                        <div className="mt-3 flex gap-1.5">
-                          {COLUMNS.filter((target) => target !== proposal.status).map((target) => (
-                            <Button
-                              key={target}
-                              variant="outline"
-                              size="sm"
-                              disabled={isBusy}
-                              onClick={() => move(proposal, target)}
-                              className="flex-1 !px-2 !text-[0.65rem]">
-                              → {t(PROPOSAL_STATUS[target].labelKey)}
-                            </Button>
-                          ))}
-                        </div>
-                      </article>
+                  {items.map((proposal) => (
+                    <li key={proposal._id}>
+                      <ProposalBoardCard
+                        proposal={proposal}
+                        isEn={isEn}
+                        isDragging={draggingId === proposal._id}
+                        isBusy={isBusy}
+                        onDragStart={setDraggingId}
+                        onDragEnd={() => setDraggingId(null)}
+                        onMove={move}
+                      />
                     </li>
-                    );
-                  })}
+                  ))}
                 </ul>
               )}
             </section>

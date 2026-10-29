@@ -17,13 +17,20 @@ import type { User } from "@/types";
  * history + reviews) gamifies quality rather than volume: a spammy bidder with no
  * wins cannot outrank a smaller number of accepted, well-rated projects.
  */
+function getRankMedal(rank: number): string | null {
+  if (rank === 1) return "🥇";
+  if (rank === 2) return "🥈";
+  if (rank === 3) return "🥉";
+  return null;
+}
+
 export function LeaderboardTable({
   rows,
   currentUser,
-}: {
-  rows: LeaderboardRow[];
-  currentUser?: User;
-}) {
+}: Readonly<{
+  readonly rows: readonly LeaderboardRow[];
+  readonly currentUser?: User;
+}>) {
   const { t } = useT();
 
   const columns: Array<Column<LeaderboardRow>> = [
@@ -34,7 +41,7 @@ export function LeaderboardTable({
       width: "4rem",
       render: (row) => {
         const index = rows.indexOf(row) + 1;
-        const medal = index === 1 ? "🥇" : index === 2 ? "🥈" : index === 3 ? "🥉" : null;
+        const medal = getRankMedal(index);
         return (
           <span className="font-black tabular-nums text-ink">
             {medal ?? formatNumber(index)}
@@ -125,7 +132,7 @@ export function LeaderboardTable({
 }
 
 /** Earned / locked achievements for the signed-in freelancer. */
-export function BadgeGrid({ badges }: { badges: string[] }) {
+export function BadgeGrid({ badges }: Readonly<{ readonly badges: readonly string[] }>) {
   const { t } = useT();
   const all = ["firstProposal", "tenProposals", "accepted", "verified", "highRating", "veteran"];
 
@@ -166,12 +173,12 @@ export function ExperienceCard({
   level,
   progress,
   toNext,
-}: {
-  xp: number;
-  level: number;
-  progress: number;
-  toNext: number;
-}) {
+}: Readonly<{
+  readonly xp: number;
+  readonly level: number;
+  readonly progress: number;
+  readonly toNext: number;
+}>) {
   const { t } = useT();
   return (
     <Card>

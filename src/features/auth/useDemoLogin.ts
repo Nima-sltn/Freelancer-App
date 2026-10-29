@@ -28,7 +28,7 @@ export function useDemoLogin() {
     onSuccess: (result) => {
       const user = result.user;
       if (!user) return;
-      void queryClient.invalidateQueries({ queryKey: queryKeys.auth.profile });
+      queryClient.invalidateQueries({ queryKey: queryKeys.auth.profile });
       toast.success(result.message);
 
       if (!user.isActive) {

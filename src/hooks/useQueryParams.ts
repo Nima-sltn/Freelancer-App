@@ -42,11 +42,12 @@ export function useQueryParams<T extends Record<string, string>>(
               next.delete(key);
               return;
             }
-            if (String(value) === defaults[key]) {
+            const strValue = typeof value === "object" ? JSON.stringify(value) : String(value);
+            if (strValue === defaults[key]) {
               next.delete(key);
               return;
             }
-            next.set(key, String(value));
+            next.set(key, strValue);
           });
           return next;
         },

@@ -26,7 +26,35 @@ import type { ChatMessage, Conversation, User } from "@/types";
  */
 const STORAGE_KEY = "conversations";
 
-export function useLocalConversations(seed: Conversation[], userId: string | undefined) {
+export function updatePendingMessage(
+  conversations: Conversation[],
+  conversationId: string,
+  messageId: string
+): Conversation[] {
+  return conversations.map((conversation) => {
+    if (conversation.id !== conversationId) return conversation;
+    return {
+      ...conversation,
+      messages: conversation.messages.map((message) =>
+        message.id === messageId ? { ...message, pending: false } : message
+      ),
+    };
+  });
+}
+
+function appendMessageToConversation(
+  conversations: Conversation[],
+  conversationId: string,
+  message: ChatMessage
+): Conversation[] {
+  return conversations.map((conversation) =>
+    conversation.id === conversationId
+      ? { ...conversation, messages: [...conversation.messages, message] }
+      : conversation
+  );
+}
+
+function useLocalConversations(seed: Conversation[], userId: string | undefined) {
   const [conversations, setConversations] = useState<Conversation[]>(() =>
     storage.get<Conversation[]>(STORAGE_KEY, [])
   );
@@ -50,11 +78,7 @@ export function useLocalConversations(seed: Conversation[], userId: string | und
     };
 
     setConversations((current) => {
-      const next = current.map((conversation) =>
-        conversation.id === conversationId
-          ? { ...conversation, messages: [...conversation.messages, message] }
-          : conversation
-      );
+      const next = appendMessageToConversation(current, conversationId, message);
       storage.set(STORAGE_KEY, next);
       return next;
     });
@@ -64,16 +88,7 @@ export function useLocalConversations(seed: Conversation[], userId: string | und
 
   const markSent = (conversationId: string, messageId: string) => {
     setConversations((current) => {
-      const next = current.map((conversation) =>
-        conversation.id === conversationId
-          ? {
-              ...conversation,
-              messages: conversation.messages.map((message) =>
-                message.id === messageId ? { ...message, pending: false } : message
-              ),
-            }
-          : conversation
-      );
+      const next = updatePendingMessage(current, conversationId, messageId);
       storage.set(STORAGE_KEY, next);
       return next;
     });
@@ -90,13 +105,15 @@ export function useLocalConversations(seed: Conversation[], userId: string | und
   return { conversations: mine.length > 0 ? mine : conversations, send, markSent };
 }
 
+export interface MessagesPanelProps {
+  readonly seed: Conversation[];
+  readonly user: User | undefined;
+}
+
 export function MessagesPanel({
   seed,
   user,
-}: {
-  seed: Conversation[];
-  user: User | undefined;
-}) {
+}: Readonly<MessagesPanelProps>) {
   const { t } = useT();
   const { online } = useOnlineStatus();
   const { conversations, send, markSent } = useLocalConversations(seed, user?._id);

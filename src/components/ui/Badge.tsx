@@ -20,12 +20,12 @@ export function Badge({
   icon,
   children,
   className,
-}: {
-  tone?: Tone;
-  icon?: ReactNode;
-  children: ReactNode;
-  className?: string;
-}) {
+}: Readonly<{
+  readonly tone?: Tone;
+  readonly icon?: ReactNode;
+  readonly children: ReactNode;
+  readonly className?: string;
+}>) {
   return (
     <span className={cx("badge", TONES[tone], className)}>
       {icon ? <span aria-hidden="true">{icon}</span> : null}
@@ -39,12 +39,12 @@ export function Chip({
   onRemove,
   title,
   className,
-}: {
-  children: ReactNode;
-  onRemove?: () => void;
-  title?: string;
-  className?: string;
-}) {
+}: Readonly<{
+  readonly children: ReactNode;
+  readonly onRemove?: () => void;
+  readonly title?: string;
+  readonly className?: string;
+}>) {
   const { t } = useT();
   return (
     <span className={cx("chip", className)} title={title}>
@@ -62,7 +62,7 @@ export function Chip({
   );
 }
 
-export function Kbd({ children }: { children: ReactNode }) {
+export function Kbd({ children }: Readonly<{ readonly children: ReactNode }>) {
   return (
     <kbd className="inline-flex h-5 min-w-5 items-center justify-center rounded border border-line bg-surface-sunken px-1.5 font-sans text-[0.65rem] font-bold text-ink-muted">
       {children}
@@ -82,19 +82,19 @@ const TONE_MAP: Record<string, Tone> = {
   info: "info",
 };
 
-export function ProjectStatusBadge({ status }: { status: ProjectStatus }) {
+export function ProjectStatusBadge({ status }: Readonly<{ readonly status: ProjectStatus }>) {
   const { t } = useT();
   const config = PROJECT_STATUS[status];
   return <Badge tone={TONE_MAP[config.tone]}>{t(config.labelKey)}</Badge>;
 }
 
-export function ProposalStatusBadge({ status }: { status: ProposalStatus }) {
+export function ProposalStatusBadge({ status }: Readonly<{ readonly status: ProposalStatus }>) {
   const { t } = useT();
   const config = PROPOSAL_STATUS[status];
   return <Badge tone={TONE_MAP[config.tone]}>{t(config.labelKey)}</Badge>;
 }
 
-export function UserStatusBadge({ status }: { status: UserStatus }) {
+export function UserStatusBadge({ status }: Readonly<{ readonly status: UserStatus }>) {
   const { t } = useT();
   const config = USER_STATUS[status];
   return <Badge tone={TONE_MAP[config.tone]}>{t(config.labelKey)}</Badge>;

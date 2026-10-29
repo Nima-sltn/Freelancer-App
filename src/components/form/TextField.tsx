@@ -4,24 +4,24 @@ import { FormField, useFieldAria } from "./FormField";
 import { cx } from "@/lib/cx";
 
 export interface TextFieldProps<T extends FieldValues> {
-  name: Path<T>;
-  label?: ReactNode;
-  register: UseFormRegister<T>;
-  errors?: FieldErrors<T>;
-  rules?: RegisterOptions<T, Path<T>>;
-  type?: "text" | "email" | "tel" | "number" | "password" | "url";
-  placeholder?: string;
-  hint?: ReactNode;
-  required?: boolean;
-  disabled?: boolean;
-  autoComplete?: string;
-  inputMode?: "text" | "numeric" | "tel" | "email" | "decimal";
-  leadingIcon?: ReactNode;
-  trailingIcon?: ReactNode;
+  readonly name: Path<T>;
+  readonly label?: ReactNode;
+  readonly register: UseFormRegister<T>;
+  readonly errors?: FieldErrors<T>;
+  readonly rules?: RegisterOptions<T, Path<T>>;
+  readonly type?: "text" | "email" | "tel" | "number" | "password" | "url";
+  readonly placeholder?: string;
+  readonly hint?: ReactNode;
+  readonly required?: boolean;
+  readonly disabled?: boolean;
+  readonly autoComplete?: string;
+  readonly inputMode?: "text" | "numeric" | "tel" | "email" | "decimal";
+  readonly leadingIcon?: ReactNode;
+  readonly trailingIcon?: ReactNode;
   /** Renders a numeric input with digit grouping and latin/persian handling. */
-  multiline?: boolean;
-  rows?: number;
-  className?: string;
+  readonly multiline?: boolean;
+  readonly rows?: number;
+  readonly className?: string;
 }
 
 /**
@@ -49,7 +49,7 @@ export function TextField<T extends FieldValues>({
   multiline,
   rows = 4,
   className,
-}: TextFieldProps<T>) {
+}: Readonly<TextFieldProps<T>>) {
   const error = errors?.[name]?.message as string | undefined;
   const aria = useFieldAria(name, { hasError: Boolean(error), hasHint: Boolean(hint) });
 

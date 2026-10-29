@@ -51,7 +51,11 @@ function createQueryClient() {
   });
 }
 
-export function AppProviders({ children }: { children: ReactNode }) {
+export interface AppProvidersProps {
+  readonly children: ReactNode;
+}
+
+export function AppProviders({ children }: Readonly<AppProvidersProps>) {
   const [queryClient] = useState(createQueryClient);
 
   return (

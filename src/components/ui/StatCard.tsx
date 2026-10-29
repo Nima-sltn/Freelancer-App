@@ -16,18 +16,17 @@ export function StatCard({
   footer,
   isLoading,
   className,
-}: {
-  title: string;
-  value: number | string;
-  icon?: ReactNode;
-  tone?: StatTone;
-  hint?: string;
-  /** Percentage change vs the previous period; sign drives the arrow. */
-  delta?: number;
-  footer?: ReactNode;
-  isLoading?: boolean;
-  className?: string;
-}) {
+}: Readonly<{
+  readonly title: string;
+  readonly value: number | string;
+  readonly icon?: ReactNode;
+  readonly tone?: StatTone;
+  readonly hint?: string;
+  readonly delta?: number;
+  readonly footer?: ReactNode;
+  readonly isLoading?: boolean;
+  readonly className?: string;
+}>) {
   const { t, locale } = useT();
   const formatted = typeof value === "number" ? formatNumber(value) : value;
 

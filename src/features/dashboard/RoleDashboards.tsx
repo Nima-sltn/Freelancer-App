@@ -23,7 +23,7 @@ import {
   IconUsers,
   IconWallet,
 } from "@/components/ui/icons";
-import type { Project, Proposal, User } from "@/types";
+import type { MatchScore, Project, Proposal, User } from "@/types";
 import {
   ActivityWidget,
   BudgetWidget,
@@ -45,11 +45,17 @@ import type { DashboardData } from "./useDashboardData";
  * zero decorative clutter or screaming emoji badges.
  */
 
+function getProposalActivityTone(status: number): "success" | "danger" | "primary" {
+  if (status === 2) return "success";
+  if (status === 0) return "danger";
+  return "primary";
+}
+
 /* ========================================================================== */
 /* Client (Owner) Dashboard                                                   */
 /* ========================================================================== */
 
-export function OwnerDashboardView({ data, user }: { data: DashboardData; user: User }) {
+export function OwnerDashboardView({ data, user }: Readonly<{ readonly data: DashboardData; readonly user: User }>) {
   const { t } = useT();
 
   const activity = useMemo(
@@ -152,7 +158,7 @@ export function OwnerDashboardView({ data, user }: { data: DashboardData; user: 
 /* Freelancer Dashboard                                                       */
 /* ========================================================================== */
 
-export function FreelancerDashboardView({ data, user }: { data: DashboardData; user: User }) {
+export function FreelancerDashboardView({ data, user }: Readonly<{ readonly data: DashboardData; readonly user: User }>) {
   const { t } = useT();
 
   const activity = useMemo(
@@ -162,7 +168,7 @@ export function FreelancerDashboardView({ data, user }: { data: DashboardData; u
         title: proposal.project?.title ?? t("proposals.title"),
         description: `${formatCurrency(proposal.price)} • ${formatRelative(proposal.createdAt ?? "")}`,
         at: proposal.createdAt ?? new Date().toISOString(),
-        tone: proposal.status === 2 ? ("success" as const) : proposal.status === 0 ? ("danger" as const) : ("primary" as const),
+        tone: getProposalActivityTone(proposal.status),
       })),
     [data.proposals, t]
   );
@@ -233,7 +239,7 @@ export function FreelancerDashboardView({ data, user }: { data: DashboardData; u
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                {data.recommendations.slice(0, 4).map(({ project, score }) => (
+                {data.recommendations.slice(0, 4).map(({ project, score }: { project: Project; score: MatchScore }) => (
                   <div key={project._id} className="transition-all duration-200 hover:-translate-y-0.5">
                     <ProjectCard
                       project={project}
@@ -276,7 +282,7 @@ export function FreelancerDashboardView({ data, user }: { data: DashboardData; u
 /* Admin Dashboard                                                            */
 /* ========================================================================== */
 
-export function AdminDashboardView({ data, user }: { data: DashboardData; user: User }) {
+export function AdminDashboardView({ data, user }: Readonly<{ readonly data: DashboardData; readonly user: User }>) {
   const { t } = useT();
 
   const pendingUsers = useMemo(
@@ -387,10 +393,10 @@ export function AdminDashboardView({ data, user }: { data: DashboardData; user: 
 export function DashboardSwitch({
   data,
   user,
-}: {
-  data: DashboardData;
-  user: User;
-}) {
+}: Readonly<{
+  readonly data: DashboardData;
+  readonly user: User;
+}>) {
   if (user.role === "ADMIN") return <AdminDashboardView data={data} user={user} />;
   if (user.role === "FREELANCER") return <FreelancerDashboardView data={data} user={user} />;
   return <OwnerDashboardView data={data} user={user} />;

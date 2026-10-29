@@ -33,7 +33,7 @@ export function AuthContainer() {
 
   const routeAfterLogin = (user: User | undefined) => {
     if (!user) return;
-    void queryClient.invalidateQueries({ queryKey: queryKeys.auth.profile });
+    queryClient.invalidateQueries({ queryKey: queryKeys.auth.profile });
 
     if (!user.isActive) {
       navigate("/complete-profile");

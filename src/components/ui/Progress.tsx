@@ -1,6 +1,6 @@
 import { cx } from "@/lib/cx";
 import { formatNumber } from "@/lib/format/numbers";
-import { useT } from "@/store/i18n";
+import { useT, type TranslationKey } from "@/store/i18n";
 
 type Tone = "primary" | "success" | "warning" | "danger" | "info";
 
@@ -20,6 +20,16 @@ const STROKE_TONES: Record<Tone, string> = {
   info: "stroke-info",
 };
 
+export interface ProgressBarProps {
+  readonly value: number;
+  readonly max?: number;
+  readonly tone?: Tone;
+  readonly label?: string;
+  readonly showValue?: boolean;
+  readonly size?: "sm" | "md" | "lg";
+  readonly className?: string;
+}
+
 export function ProgressBar({
   value,
   max = 100,
@@ -28,15 +38,7 @@ export function ProgressBar({
   showValue = false,
   size = "md",
   className,
-}: {
-  value: number;
-  max?: number;
-  tone?: Tone;
-  label?: string;
-  showValue?: boolean;
-  size?: "sm" | "md" | "lg";
-  className?: string;
-}) {
+}: Readonly<ProgressBarProps>) {
   const { t, locale } = useT();
   const safeMax = max > 0 ? max : 1;
   const percent = Math.min(100, Math.max(0, (value / safeMax) * 100));
@@ -50,20 +52,34 @@ export function ProgressBar({
           {showValue ? <span>{formatNumber(Math.round(percent))}{locale === "fa" ? "٪" : "%"}</span> : null}
         </div>
       ) : null}
-      <div
-        role="progressbar"
-        aria-valuenow={Math.round(percent)}
-        aria-valuemin={0}
-        aria-valuemax={100}
+      <progress
+        value={Math.round(percent)}
+        max={100}
         aria-label={label ?? t("common.progress")}
-        className={cx("w-full overflow-hidden rounded-full bg-surface-sunken", heights[size])}>
-        <div
-          className={cx("h-full rounded-full transition-all duration-500 ease-spring", BAR_TONES[tone])}
-          style={{ width: `${percent}%` }}
-        />
-      </div>
+        className={cx(
+          "block w-full overflow-hidden rounded-full bg-surface-sunken appearance-none",
+          "[&::-webkit-progress-bar]:bg-surface-sunken [&::-webkit-progress-value]:rounded-full [&::-webkit-progress-value]:transition-all [&::-moz-progress-bar]:rounded-full",
+          heights[size],
+          tone === "primary" && "[&::-webkit-progress-value]:bg-primary-600 [&::-moz-progress-bar]:bg-primary-600",
+          tone === "success" && "[&::-webkit-progress-value]:bg-success [&::-moz-progress-bar]:bg-success",
+          tone === "warning" && "[&::-webkit-progress-value]:bg-warning [&::-moz-progress-bar]:bg-warning",
+          tone === "danger" && "[&::-webkit-progress-value]:bg-danger [&::-moz-progress-bar]:bg-danger",
+          tone === "info" && "[&::-webkit-progress-value]:bg-info [&::-moz-progress-bar]:bg-info"
+        )}>
+        {Math.round(percent)}%
+      </progress>
     </div>
   );
+}
+
+export interface ProgressRingProps {
+  readonly value: number;
+  readonly max?: number;
+  readonly size?: number;
+  readonly strokeWidth?: number;
+  readonly tone?: Tone;
+  readonly children?: React.ReactNode;
+  readonly label?: string;
 }
 
 /** Compact animated ring, used for match scores and completion meters. */
@@ -75,28 +91,26 @@ export function ProgressRing({
   tone = "primary",
   children,
   label,
-}: {
-  value: number;
-  max?: number;
-  size?: number;
-  strokeWidth?: number;
-  tone?: Tone;
-  children?: React.ReactNode;
-  label?: string;
-}) {
+}: Readonly<ProgressRingProps>) {
   const { t } = useT();
   const safeMax = max > 0 ? max : 1;
   const percent = Math.min(100, Math.max(0, (value / safeMax) * 100));
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const dash = (percent / 100) * circumference;
+  const accessibleLabel = label ?? t("common.scoreOutOf", {
+    score: formatNumber(Math.round(percent)),
+    max: formatNumber(100),
+  });
 
   return (
-    <div
-      className="relative inline-grid place-items-center"
-      role="img"
-      aria-label={label ?? t("common.scoreOutOf", { score: formatNumber(Math.round(percent)), max: formatNumber(100) })}>
-      <svg width={size} height={size} className="-rotate-90">
+    <div className="relative inline-grid place-items-center">
+      <svg
+        width={size}
+        height={size}
+        className="-rotate-90"
+        aria-label={accessibleLabel}>
+        <title>{accessibleLabel}</title>
         <circle
           cx={size / 2}
           cy={size / 2}
@@ -121,26 +135,35 @@ export function ProgressRing({
   );
 }
 
+function getScoreTone(score: number): Tone {
+  if (score >= 80) return "success";
+  if (score >= 60) return "info";
+  if (score >= 40) return "warning";
+  return "danger";
+}
+
+function getScoreTierKey(score: number): TranslationKey {
+  if (score >= 80) return "matching.tier.excellent";
+  if (score >= 60) return "matching.tier.good";
+  if (score >= 40) return "matching.tier.fair";
+  return "matching.tier.weak";
+}
+
+export interface ScoreMeterProps {
+  readonly score: number;
+  readonly size?: "sm" | "md";
+  readonly showLabel?: boolean;
+}
+
 /** 0–100 score with a tone derived from the value, used by AI match scoring. */
 export function ScoreMeter({
   score,
   size = "md",
   showLabel = true,
-}: {
-  score: number;
-  size?: "sm" | "md";
-  showLabel?: boolean;
-}) {
+}: Readonly<ScoreMeterProps>) {
   const { t } = useT();
-  const tone: Tone = score >= 80 ? "success" : score >= 60 ? "info" : score >= 40 ? "warning" : "danger";
-  const label =
-    score >= 80
-      ? t("matching.tier.excellent")
-      : score >= 60
-        ? t("matching.tier.good")
-        : score >= 40
-          ? t("matching.tier.fair")
-          : t("matching.tier.weak");
+  const tone: Tone = getScoreTone(score);
+  const label = t(getScoreTierKey(score));
 
   return (
     <div className={cx("flex items-center gap-2", size === "sm" && "gap-1.5")}>
@@ -166,15 +189,17 @@ export function ScoreMeter({
   );
 }
 
+export interface RatingStarsProps {
+  readonly value: number;
+  readonly count?: number;
+  readonly size?: "sm" | "md";
+}
+
 export function RatingStars({
   value,
   count,
   size = "md",
-}: {
-  value: number;
-  count?: number;
-  size?: "sm" | "md";
-}) {
+}: Readonly<RatingStarsProps>) {
   const { t } = useT();
   const rounded = Math.round(value);
   return (

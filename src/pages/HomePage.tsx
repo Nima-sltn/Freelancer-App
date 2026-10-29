@@ -327,25 +327,33 @@ function HomePage() {
           <div className="mt-16 grid gap-8 md:grid-cols-4">
             {[
               {
+                id: "step-1",
+                num: 1,
                 title: t("landing.step1.title"),
                 desc: t("landing.step1.desc"),
               },
               {
+                id: "step-2",
+                num: 2,
                 title: t("landing.step2.title"),
                 desc: t("landing.step2.desc"),
               },
               {
+                id: "step-3",
+                num: 3,
                 title: t("landing.step3.title"),
                 desc: t("landing.step3.desc"),
               },
               {
+                id: "step-4",
+                num: 4,
                 title: t("landing.step4.title"),
                 desc: t("landing.step4.desc"),
               },
-            ].map((step, idx) => (
-              <div key={idx} className="relative flex flex-col">
+            ].map((step) => (
+              <div key={step.id} className="relative flex flex-col">
                 <span className="grid h-12 w-12 place-items-center rounded-2xl bg-surface text-lg font-black text-ink shadow-xs border border-line/70">
-                  {formatNumber(idx + 1)}
+                  {formatNumber(step.num)}
                 </span>
                 <h3 className="mt-5 text-base font-bold text-ink">{step.title}</h3>
                 <p className="mt-2 text-xs leading-6 text-ink-soft">{step.desc}</p>

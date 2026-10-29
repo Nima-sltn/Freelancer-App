@@ -5,12 +5,12 @@ import { useT } from "@/store/i18n";
 import { cx } from "@/lib/cx";
 
 interface PaginationProps {
-  page: number;
-  pageSize: number;
-  total: number;
-  onPageChange: (page: number) => void;
-  onPageSizeChange?: (size: number) => void;
-  className?: string;
+  readonly page: number;
+  readonly pageSize: number;
+  readonly total: number;
+  readonly onPageChange: (page: number) => void;
+  readonly onPageSizeChange?: (size: number) => void;
+  readonly className?: string;
 }
 
 /** Window-based pagination with an optional page-size selector. */
@@ -21,7 +21,7 @@ export function Pagination({
   onPageChange,
   onPageSizeChange,
   className,
-}: PaginationProps) {
+}: Readonly<PaginationProps>) {
   const { t, dir } = useT();
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;

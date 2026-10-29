@@ -13,6 +13,20 @@ import { buildAuditFeed, auditSourceCounts, impactsForAuditEntry } from "@/entit
 import type { DomainImpact } from "@/entities/activity";
 import type { AuditEntry, Project, User } from "@/types";
 
+function getAuditEntryTone(entry: AuditEntry): "success" | "danger" | "warning" | "primary" {
+  if (entry.state === "committed" || entry.actionKey.endsWith(".2")) return "success";
+  if (entry.state === "rolled-back" || entry.actionKey.endsWith(".0")) return "danger";
+  if (entry.state === "queued" || entry.state === "pending") return "warning";
+  return "primary";
+}
+
+export interface AuditTimelineProps {
+  readonly projects: Project[];
+  readonly users?: User[];
+  readonly showLocal?: boolean;
+  readonly limit?: number;
+}
+
 /**
  * Audit trail — a *view* over `entities/activity`.
  *
@@ -28,12 +42,7 @@ export function AuditTimeline({
   users = [],
   showLocal = true,
   limit = 40,
-}: {
-  projects: Project[];
-  users?: User[];
-  showLocal?: boolean;
-  limit?: number;
-}) {
+}: Readonly<AuditTimelineProps>) {
   const { t } = useT();
   const { entries, clearHistory } = useTransactions();
 
@@ -58,23 +67,17 @@ export function AuditTimeline({
         ...(entry.meta ?? {}),
       });
 
-    return feed.map((entry) => ({
-      id: entry.id,
-      title: titleFor(entry),
-      description: `${entry.actorName} • ${t(`audit.source.${entry.source}`)}`,
-      at: entry.at,
-      tone:
-        entry.state === "committed"
-          ? ("success" as const)
-          : entry.state === "rolled-back" || entry.actionKey.endsWith(".0")
-            ? ("danger" as const)
-            : entry.state === "queued" || entry.state === "pending"
-              ? ("warning" as const)
-              : entry.actionKey.endsWith(".2")
-                ? ("success" as const)
-                : ("primary" as const),
-      meta: <RowMeta entry={entry} impacts={impactsForAuditEntry(entry)} label={impactLabel} />,
-    }));
+    return feed.map((entry) => {
+      const sourceStr = t(`audit.source.${entry.source}`);
+      return {
+        id: entry.id,
+        title: titleFor(entry),
+        description: `${entry.actorName} • ${sourceStr}`,
+        at: entry.at,
+        tone: getAuditEntryTone(entry),
+        meta: <RowMeta entry={entry} impacts={impactsForAuditEntry(entry)} label={impactLabel} />,
+      };
+    });
     // `impactLabel` is a stable bound translator.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feed, t]);
@@ -133,16 +136,18 @@ export function AuditTimeline({
   );
 }
 
+export interface RowMetaProps {
+  readonly entry: AuditEntry;
+  readonly impacts: DomainImpact[];
+  readonly label: (impact: DomainImpact) => string;
+}
+
 /** Badges for the domains an event reached, plus the failure, if any. */
 function RowMeta({
   entry,
   impacts,
   label,
-}: {
-  entry: AuditEntry;
-  impacts: DomainImpact[];
-  label: (impact: DomainImpact) => string;
-}): ReactNode {
+}: Readonly<RowMetaProps>): ReactNode {
   const { t } = useT();
 
   return (

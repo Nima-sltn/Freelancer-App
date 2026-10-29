@@ -5,12 +5,12 @@ import { useT } from "@/store/i18n";
 import { cx } from "@/lib/cx";
 
 export interface LegendItem {
-  label: string;
-  color: string;
-  value?: string | number;
+  readonly label: string;
+  readonly color: string;
+  readonly value?: string | number;
 }
 
-export function ChartLegend({ items, className }: { items: LegendItem[]; className?: string }) {
+export function ChartLegend({ items, className }: Readonly<{ readonly items: readonly LegendItem[]; readonly className?: string }>) {
   return (
     <ul className={cx("flex flex-wrap items-center gap-x-4 gap-y-2", className)}>
       {items.map((item) => (
@@ -31,7 +31,7 @@ export function ChartLegend({ items, className }: { items: LegendItem[]; classNa
 }
 
 /** Screen-reader alternative for every visualisation (a11y requirement). */
-function DataTableFallback({ data, label }: { data: SeriesPoint[]; label: string }) {
+function DataTableFallback({ data, label }: Readonly<{ readonly data: readonly SeriesPoint[]; readonly label: string }>) {
   const { t } = useT();
   return (
     <table className="sr-only">
@@ -71,19 +71,19 @@ export function ChartFrame({
   height,
   children,
   className,
-}: {
-  title?: ReactNode;
-  subtitle?: ReactNode;
-  actions?: ReactNode;
-  legend?: LegendItem[];
-  data?: SeriesPoint[];
-  dataLabel?: string;
-  isEmpty?: boolean;
-  emptyMessage?: string;
-  height?: number;
-  children: ReactNode;
-  className?: string;
-}) {
+}: Readonly<{
+  readonly title?: ReactNode;
+  readonly subtitle?: ReactNode;
+  readonly actions?: ReactNode;
+  readonly legend?: readonly LegendItem[];
+  readonly data?: readonly SeriesPoint[];
+  readonly dataLabel?: string;
+  readonly isEmpty?: boolean;
+  readonly emptyMessage?: string;
+  readonly height?: number;
+  readonly children: ReactNode;
+  readonly className?: string;
+}>) {
   const { t } = useT();
   const resolvedDataLabel = dataLabel ?? t("charts.dataLabel");
   const resolvedEmpty = emptyMessage ?? t("charts.empty");

@@ -14,10 +14,23 @@ import { assessProposalRisk } from "@/entities/proposal/matching";
 import { buildTrustProfile } from "@/entities/user/trust";
 import type { Proposal, Project, User } from "@/types";
 
+function getTrustTone(score: number): "success" | "warning" | "danger" {
+  if (score >= 65) return "success";
+  if (score >= 40) return "warning";
+  return "danger";
+}
+
+function getRiskLevelTone(level: string): "danger" | "warning" | "success" {
+  if (level === "high") return "danger";
+  if (level === "medium") return "warning";
+  return "success";
+}
+
 /** Trust summary for a single user (profile pages, admin drawer). */
-export function TrustPanel({ user, compact = false }: { user: User; compact?: boolean }) {
+export function TrustPanel({ user, compact = false }: Readonly<{ readonly user: User; readonly compact?: boolean }>) {
   const { t } = useT();
   const trust = useMemo(() => buildTrustProfile(user), [user]);
+  const trustTone = getTrustTone(trust.score);
 
   return (
     <Card>
@@ -25,13 +38,13 @@ export function TrustPanel({ user, compact = false }: { user: User; compact?: bo
         title={t("trust.title")}
         description={`${t("trust.score")}: ${formatNumber(trust.score)}`}
         icon={<IconShield />}
-        actions={<Badge tone={trust.score >= 65 ? "success" : trust.score >= 40 ? "warning" : "danger"}>{t(`trust.level.${trust.level}`)}</Badge>}
+        actions={<Badge tone={trustTone}>{t(`trust.level.${trust.level}`)}</Badge>}
       />
       <CardContent>
         <div className="flex flex-col items-center gap-4 sm:flex-row">
           <ProgressRing
             value={trust.score}
-            tone={trust.score >= 65 ? "success" : trust.score >= 40 ? "warning" : "danger"}
+            tone={trustTone}
             label={`${t("trust.score")}: ${trust.score}`}>
             <span className="text-lg font-black text-ink tabular-nums">{formatNumber(trust.score)}</span>
           </ProgressRing>
@@ -83,18 +96,18 @@ export function RiskQueue({
   isLoading,
   onDecide,
   isDeciding,
-}: {
-  proposals: Proposal[];
-  projects: Project[];
-  isLoading?: boolean;
-  onDecide?: (decision: {
-    proposalId: string;
-    projectId: string;
-    status: 0 | 1 | 2;
-    previousStatus: 0 | 1 | 2;
+}: Readonly<{
+  readonly proposals: readonly Proposal[];
+  readonly projects: readonly Project[];
+  readonly isLoading?: boolean;
+  readonly onDecide?: (decision: {
+    readonly proposalId: string;
+    readonly projectId: string;
+    readonly status: 0 | 1 | 2;
+    readonly previousStatus: 0 | 1 | 2;
   }) => void;
-  isDeciding?: boolean;
-}) {
+  readonly isDeciding?: boolean;
+}>) {
   const { t } = useT();
 
   const rows = useMemo<RiskRow[]>(() => {
@@ -143,7 +156,7 @@ export function RiskQueue({
       header: t("trust.score"),
       sortable: true,
       render: (row) => (
-        <Badge tone={row.level === "high" ? "danger" : row.level === "medium" ? "warning" : "success"}>
+        <Badge tone={getRiskLevelTone(row.level)}>
           {formatNumber(row.score)}
         </Badge>
       ),

@@ -104,7 +104,7 @@ function UsersPage() {
               size="sm"
               disabled={isPending}
               onClick={() =>
-                void changeStatus({ userId: user._id, status: 2 as UserStatus })
+                changeStatus({ userId: user._id, status: 2 as UserStatus })
               }>
               {t("status.user.verified")}
             </Button>

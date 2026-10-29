@@ -4,16 +4,57 @@ import { formatNumber } from "@/lib/format/numbers";
 import { cx } from "@/lib/cx";
 
 export interface HeatmapActivityDay {
-  date: string; // ISO date YYYY-MM-DD
-  count: number;
-  level?: 0 | 1 | 2 | 3 | 4;
+  readonly date: string; // ISO date YYYY-MM-DD
+  readonly count: number;
+  readonly level?: 0 | 1 | 2 | 3 | 4;
 }
 
 export interface HeatmapCalendarProps {
-  data?: HeatmapActivityDay[];
-  weeks?: number;
-  className?: string;
-  title?: string;
+  readonly data?: readonly HeatmapActivityDay[];
+  readonly weeks?: number;
+  readonly className?: string;
+  readonly title?: string;
+}
+
+const LEVEL_ITEMS = [
+  { level: 0, bg: "bg-surface-sunken border border-line" },
+  { level: 1, bg: "bg-primary-500/20" },
+  { level: 2, bg: "bg-primary-500/40" },
+  { level: 3, bg: "bg-primary-500/70" },
+  { level: 4, bg: "bg-primary-600" },
+] as const;
+
+function computeActivityLevel(count: number): number {
+  if (count === 0) return 0;
+  if (count <= 1) return 1;
+  if (count <= 3) return 2;
+  if (count <= 5) return 3;
+  return 4;
+}
+
+function generateDaysData(data: readonly HeatmapActivityDay[], weeks: number) {
+  const map = new Map<string, number>();
+  data.forEach((d) => map.set(d.date.slice(0, 10), d.count));
+
+  const totalDays = weeks * 7;
+  const result: Array<{ date: string; count: number; level: number; dayOfWeek: number }> = [];
+  const now = new Date();
+
+  for (let i = totalDays - 1; i >= 0; i -= 1) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const iso = d.toISOString().slice(0, 10);
+    const count = map.get(iso) ?? 0;
+    const level = computeActivityLevel(count);
+    result.push({
+      date: iso,
+      count,
+      level,
+      dayOfWeek: d.getDay(),
+    });
+  }
+
+  return result;
 }
 
 /**
@@ -25,42 +66,11 @@ export function HeatmapCalendar({
   weeks = 16,
   className,
   title,
-}: HeatmapCalendarProps) {
+}: Readonly<HeatmapCalendarProps>) {
   const { t } = useT();
   const resolvedTitle = title ?? t("heatmap.title");
 
-  const daysData = useMemo(() => {
-    const map = new Map<string, number>();
-    data.forEach((d) => map.set(d.date.slice(0, 10), d.count));
-
-    const totalDays = weeks * 7;
-    const result: Array<{ date: string; count: number; level: number; dayOfWeek: number }> = [];
-    const now = new Date();
-
-    for (let i = totalDays - 1; i >= 0; i -= 1) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const iso = d.toISOString().slice(0, 10);
-      const count = map.get(iso) ?? (Math.random() > 0.65 ? Math.floor(Math.random() * 5) : 0);
-      const level = count === 0 ? 0 : count <= 1 ? 1 : count <= 3 ? 2 : count <= 5 ? 3 : 4;
-      result.push({
-        date: iso,
-        count,
-        level,
-        dayOfWeek: d.getDay(),
-      });
-    }
-
-    return result;
-  }, [data, weeks]);
-
-  const LEVEL_COLORS = [
-    "bg-surface-sunken border border-line",
-    "bg-primary-500/20",
-    "bg-primary-500/40",
-    "bg-primary-500/70",
-    "bg-primary-600",
-  ];
+  const daysData = useMemo(() => generateDaysData(data, weeks), [data, weeks]);
 
   return (
     <div className={cx("rounded-2xl border border-line/70 bg-surface p-5 shadow-xs", className)}>
@@ -68,8 +78,8 @@ export function HeatmapCalendar({
         <h4 className="text-xs font-bold text-ink uppercase tracking-wider">{resolvedTitle}</h4>
         <div className="flex items-center gap-1.5 text-xs text-ink-muted">
           <span>{t("common.less")}</span>
-          {LEVEL_COLORS.map((bg, idx) => (
-            <span key={idx} className={cx("h-2.5 w-2.5 rounded-sm", bg)} />
+          {LEVEL_ITEMS.map((item) => (
+            <span key={item.level} className={cx("h-2.5 w-2.5 rounded-sm", item.bg)} />
           ))}
           <span>{t("common.more")}</span>
         </div>
@@ -86,7 +96,7 @@ export function HeatmapCalendar({
               title={t("heatmap.tooltip", { date: day.date, count: formatNumber(day.count) })}
               className={cx(
                 "h-3 w-3 rounded-sm transition-transform hover:scale-125 hover:ring-2 hover:ring-primary-500/40",
-                LEVEL_COLORS[day.level]
+                LEVEL_ITEMS[day.level]?.bg
               )}
             />
           ))}

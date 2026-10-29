@@ -17,8 +17,14 @@ import { formatCurrency, formatNumber, formatPercent } from "@/lib/format/number
 import { formatRelative, getDeadlineInfo } from "@/lib/format/dates";
 import type { AnalyticsSnapshot, SeriesPoint } from "@/types";
 
+function getDeadlineClassName(tone?: string): string {
+  if (tone === "danger") return "text-xs font-bold text-danger";
+  if (tone === "warning") return "text-xs font-bold text-warning";
+  return "text-xs font-semibold text-ink-muted";
+}
+
 /** KPI row. Clean 4-column responsive grid with consistent rhythm. */
-export function StatsGrid({ children }: { children: React.ReactNode }) {
+export function StatsGrid({ children }: Readonly<{ readonly children: React.ReactNode }>) {
   return <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{children}</div>;
 }
 
@@ -27,24 +33,26 @@ export function MoneyStat({
   value,
   icon,
   hint,
-}: {
-  title: string;
-  value: number;
-  icon?: React.ReactNode;
-  hint?: string;
-  tone?: "primary" | "success" | "warning" | "info" | "neutral";
-}) {
+  tone,
+}: Readonly<{
+  readonly title: string;
+  readonly value: number;
+  readonly icon?: React.ReactNode;
+  readonly hint?: string;
+  readonly tone?: "primary" | "success" | "warning" | "info" | "neutral";
+}>) {
   return (
     <StatCard
       title={title}
       value={formatCurrency(value, { compact: true })}
       icon={icon}
       hint={hint}
+      tone={tone}
     />
   );
 }
 
-export function TrendWidget({ data }: { data: SeriesPoint[] }) {
+export function TrendWidget({ data }: Readonly<{ readonly data: readonly SeriesPoint[] }>) {
   const { t } = useT();
   return (
     <Card className="rounded-2xl border border-line/70 shadow-xs">
@@ -65,7 +73,7 @@ export function TrendWidget({ data }: { data: SeriesPoint[] }) {
   );
 }
 
-export function CategoryWidget({ snapshot }: { snapshot: AnalyticsSnapshot }) {
+export function CategoryWidget({ snapshot }: Readonly<{ readonly snapshot: AnalyticsSnapshot }>) {
   const { t } = useT();
   return (
     <Card className="rounded-2xl border border-line/70 shadow-xs">
@@ -84,7 +92,7 @@ export function CategoryWidget({ snapshot }: { snapshot: AnalyticsSnapshot }) {
   );
 }
 
-export function BudgetWidget({ data }: { data: SeriesPoint[] }) {
+export function BudgetWidget({ data }: Readonly<{ readonly data: readonly SeriesPoint[] }>) {
   const { t } = useT();
   return (
     <Card className="rounded-2xl border border-line/70 shadow-xs">
@@ -101,9 +109,9 @@ export function BudgetWidget({ data }: { data: SeriesPoint[] }) {
 
 export function InsightsWidget({
   insights,
-}: {
-  insights: Array<{ key: string; params: Record<string, string | number> }>;
-}) {
+}: Readonly<{
+  readonly insights: readonly { readonly key: string; readonly params: Record<string, string | number> }[];
+}>) {
   const { t } = useT();
   return (
     <Card className="rounded-2xl border border-line/70 shadow-xs">
@@ -124,7 +132,7 @@ export function InsightsWidget({
   );
 }
 
-export function ActivityWidget({ items, title }: { items: TimelineItem[]; title?: string }) {
+export function ActivityWidget({ items, title }: Readonly<{ readonly items: TimelineItem[]; readonly title?: string }>) {
   const { t } = useT();
   return (
     <Card className="rounded-2xl border border-line/70 shadow-xs">
@@ -139,10 +147,10 @@ export function ActivityWidget({ items, title }: { items: TimelineItem[]; title?
 export function DeadlinesWidget({
   projects,
   href,
-}: {
-  projects: Array<{ _id: string; title: string; deadline: string }>;
-  href: string;
-}) {
+}: Readonly<{
+  readonly projects: readonly { readonly _id: string; readonly title: string; readonly deadline: string }[];
+  readonly href: string;
+}>) {
   const { t } = useT();
 
   return (
@@ -171,14 +179,7 @@ export function DeadlinesWidget({
                     className="truncate text-xs font-bold text-ink hover:text-primary-600">
                     {project.title}
                   </Link>
-                  <span
-                    className={
-                      info.tone === "danger"
-                        ? "text-xs font-bold text-danger"
-                        : info.tone === "warning"
-                          ? "text-xs font-bold text-warning"
-                          : "text-xs font-semibold text-ink-muted"
-                    }>
+                  <span className={getDeadlineClassName(info.tone)}>
                     {info.isOverdue
                       ? t("projects.overdue", { days: Math.abs(info.days) })
                       : t("projects.deadlineSoon", { days: info.days })}
@@ -195,9 +196,9 @@ export function DeadlinesWidget({
 
 export function QuickActionsWidget({
   actions,
-}: {
-  actions: Array<{ labelKey: string; to: string; icon: React.ReactNode }>;
-}) {
+}: Readonly<{
+  readonly actions: readonly { readonly labelKey: string; readonly to: string; readonly icon: React.ReactNode }[];
+}>) {
   const { t } = useT();
   return (
     <Card className="rounded-2xl border border-line/70 shadow-xs">
@@ -223,10 +224,10 @@ export function QuickActionsWidget({
 export function PipelineWidget({
   data,
   rate,
-}: {
-  data: SeriesPoint[];
-  rate: number;
-}) {
+}: Readonly<{
+  readonly data: readonly SeriesPoint[];
+  readonly rate: number;
+}>) {
   const { t } = useT();
   return (
     <Card className="rounded-2xl border border-line/70 shadow-xs">
@@ -249,15 +250,15 @@ export function TrustWidget({
   levelNumber,
   levelProgress,
   badges,
-}: {
-  score: number;
-  level: string;
-  signals: Array<{ key: string; labelKey: string; passed: boolean }>;
-  xp: number;
-  levelNumber: number;
-  levelProgress: number;
-  badges: string[];
-}) {
+}: Readonly<{
+  readonly score: number;
+  readonly level: string;
+  readonly signals: readonly { readonly key: string; readonly labelKey: string; readonly passed: boolean }[];
+  readonly xp: number;
+  readonly levelNumber: number;
+  readonly levelProgress: number;
+  readonly badges: readonly string[];
+}>) {
   const { t } = useT();
   return (
     <Card className="rounded-2xl border border-line/70 shadow-xs">

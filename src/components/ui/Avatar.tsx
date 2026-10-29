@@ -3,13 +3,13 @@ import { cx } from "@/lib/cx";
 import { useT } from "@/store/i18n";
 
 interface AvatarProps {
-  name: string;
-  src?: string | null;
-  size?: "xs" | "sm" | "md" | "lg" | "xl";
-  status?: "online" | "offline" | null;
-  className?: string;
+  readonly name: string;
+  readonly src?: string | null;
+  readonly size?: "xs" | "sm" | "md" | "lg" | "xl";
+  readonly status?: "online" | "offline" | null;
+  readonly className?: string;
   /** Adds a decorative ring, used for the current user in the top bar. */
-  highlighted?: boolean;
+  readonly highlighted?: boolean;
 }
 
 const SIZES = {
@@ -28,7 +28,7 @@ export function Avatar({
   status = null,
   highlighted,
   className,
-}: AvatarProps) {
+}: Readonly<AvatarProps>) {
   const { t } = useT();
   const label = name?.trim() || t("common.user");
   return (
@@ -75,11 +75,11 @@ export function AvatarGroup({
   people,
   max = 4,
   size = "sm",
-}: {
-  people: Array<{ name: string; src?: string | null }>;
-  max?: number;
-  size?: AvatarProps["size"];
-}) {
+}: Readonly<{
+  readonly people: readonly { readonly name: string; readonly src?: string | null }[];
+  readonly max?: number;
+  readonly size?: AvatarProps["size"];
+}>) {
   const visible = people.slice(0, max);
   const rest = people.length - visible.length;
 

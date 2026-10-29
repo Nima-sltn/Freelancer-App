@@ -6,7 +6,7 @@ const ARABIC_DIGITS = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩
 
 /** Converts Latin digits inside an arbitrary string to Persian digits. */
 export function toPersianDigits(input: string | number): string {
-  return String(input).replace(/[0-9]/g, (digit) => PERSIAN_DIGITS[Number(digit)]);
+  return String(input).replace(/\d/g, (digit) => PERSIAN_DIGITS[Number(digit)]);
 }
 
 /** Converts Persian/Arabic digits back to Latin so they can be parsed. */
@@ -42,7 +42,7 @@ export function formatNumber(value: number, options: NumberFormatOptions = {}): 
     maximumFractionDigits: options.maximumFractionDigits ?? 0,
     minimumFractionDigits: options.minimumFractionDigits ?? 0,
   }).format(safe);
-  return locale === "fa" || options.persianDigits ? formatted : formatted;
+  return options.persianDigits ? toPersianDigits(formatted) : formatted;
 }
 
 /**
@@ -75,10 +75,14 @@ export function formatCurrency(
   const withLabel = options.withLabel ?? true;
   if (options.compact) {
     const compact = formatCompact(value, locale);
-    return withLabel ? `${compact} ${locale === "fa" ? "تومان" : "T"}` : compact;
+    if (!withLabel) return compact;
+    const suffix = locale === "fa" ? "تومان" : "T";
+    return `${compact} ${suffix}`;
   }
   const formatted = formatNumber(value, { ...options, locale });
-  return withLabel ? `${formatted} ${locale === "fa" ? "تومان" : "IRR"}` : formatted;
+  if (!withLabel) return formatted;
+  const suffix = locale === "fa" ? "تومان" : "IRR";
+  return `${formatted} ${suffix}`;
 }
 
 /** `0.4213` -> `۴۲٪` */

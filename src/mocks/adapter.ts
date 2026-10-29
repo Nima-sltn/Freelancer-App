@@ -109,7 +109,12 @@ function resolveUrl(config: InternalAxiosRequestConfig): URL {
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value === undefined || value === null || value === "") return;
-      parsed.searchParams.set(key, Array.isArray(value) ? value.join(",") : String(value));
+      const strVal = Array.isArray(value)
+        ? value.join(",")
+        : typeof value === "object"
+          ? JSON.stringify(value)
+          : String(value);
+      parsed.searchParams.set(key, strVal);
     });
   }
   return parsed;
@@ -202,7 +207,7 @@ function populatedProject(state: DemoState, project: DemoProject) {
 
 function toPersianDigits(value: string | number): string {
   if (getActiveLocale() !== "fa") return String(value);
-  return String(value).replace(/[0-9]/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
+  return String(value).replace(/\d/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)]);
 }
 
 function nextId(state: DemoState, salt: number): string {
@@ -263,9 +268,12 @@ route("POST", "/user/check-otp", ({ body, state }) => {
   demoDb.persist();
 
   const isEn = getActiveLocale() === "en";
-  const welcome = user.isActive
-    ? (isEn ? "Verification successful, welcome back!" : "کد تایید شد، خوش آمدید")
-    : (isEn ? "Verification successful, please complete your profile" : "کد تایید شد، لطفاً اطلاعات خود را تکمیل کنید");
+  let welcome: string;
+  if (user.isActive) {
+    welcome = isEn ? "Verification successful, welcome back!" : "کد تایید شد، خوش آمدید";
+  } else {
+    welcome = isEn ? "Verification successful, please complete your profile" : "کد تایید شد، لطفاً اطلاعات خود را تکمیل کنید";
+  }
 
   return ok({ message: welcome, user });
 });
@@ -739,7 +747,8 @@ export function createMockAdapter(): AxiosAdapter {
       throw toAxiosError(config as InternalAxiosRequestConfig, error);
     }
 
-    const captures = path.match(matched.matcher)?.slice(1) ?? [];
+    const matchResult = matched.matcher.exec(path);
+    const captures = matchResult ? matchResult.slice(1) : [];
     matched.keys.forEach((key, index) => {
       context.params[key] = decodeURIComponent(captures[index] ?? "");
     });

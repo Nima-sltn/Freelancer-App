@@ -1,10 +1,10 @@
 import { useT } from "@/store/i18n";
 import { cx } from "@/lib/cx";
 
-interface SpinnerProps {
-  size?: "xs" | "sm" | "md" | "lg";
-  className?: string;
-  label?: string;
+export interface SpinnerProps {
+  readonly size?: "xs" | "sm" | "md" | "lg";
+  readonly className?: string;
+  readonly label?: string;
 }
 
 const SIZES: Record<NonNullable<SpinnerProps["size"]>, string> = {
@@ -15,15 +15,14 @@ const SIZES: Record<NonNullable<SpinnerProps["size"]>, string> = {
 };
 
 /**
- * Accessible inline spinner.
- * `role="status"` + a visually hidden label means screen readers announce the wait.
+ * Accessible inline spinner using semantic <output>.
  */
-export function Spinner({ size = "md", className, label }: SpinnerProps) {
+export function Spinner({ size = "md", className, label }: Readonly<SpinnerProps>) {
   const { t } = useT();
   const resolvedLabel = label ?? t("common.loading");
 
   return (
-    <span role="status" aria-live="polite" className={cx("inline-flex items-center", className)}>
+    <output className={cx("inline-flex items-center", className)}>
       <span
         aria-hidden="true"
         className={cx(
@@ -32,12 +31,12 @@ export function Spinner({ size = "md", className, label }: SpinnerProps) {
         )}
       />
       <span className="sr-only">{resolvedLabel}</span>
-    </span>
+    </output>
   );
 }
 
 /** Centred spinner used inside content regions. */
-export function Loading({ label }: { label?: string }) {
+export function Loading({ label }: Readonly<{ label?: string }>) {
   return (
     <div className="flex w-full items-center justify-center py-16">
       <Spinner size="lg" label={label} />
@@ -46,7 +45,7 @@ export function Loading({ label }: { label?: string }) {
 }
 
 /** Full-viewport loader used while a route chunk or the session resolves. */
-export function PageLoader({ label }: { label?: string }) {
+export function PageLoader({ label }: Readonly<{ readonly label?: string }>) {
   const { t } = useT();
   const resolvedLabel = label ?? t("common.loading");
 

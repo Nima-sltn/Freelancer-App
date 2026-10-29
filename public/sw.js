@@ -124,6 +124,7 @@ self.addEventListener("fetch", (event) => {
           }
           return networkResponse;
         } catch (fetchErr) {
+          console.debug("Service worker navigation fetch failed, serving cache:", fetchErr);
           // Offline fallback: try exact match, then shell root, then offline page
           const cachedNavigate =
             (await caches.match(request)) ||
@@ -163,6 +164,7 @@ self.addEventListener("fetch", (event) => {
           }
           return networkResponse;
         } catch (err) {
+          console.debug("Service worker asset fetch failed:", err);
           return null;
         }
       })();

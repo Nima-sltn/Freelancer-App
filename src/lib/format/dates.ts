@@ -4,7 +4,9 @@ import { formatNumber } from "./numbers";
 
 export const MS_PER_DAY = 86_400_000;
 
-export function toDate(value: string | number | Date | null | undefined): Date {
+export type DateInput = string | number | Date | null | undefined;
+
+export function toDate(value: DateInput): Date {
   if (value instanceof Date) return value;
   if (value === null || value === undefined || value === "") return new Date(NaN);
   const parsed = new Date(value);

@@ -145,9 +145,9 @@ export function generateCsp(options: CspOptions = {}): string {
 export function applyCspMetaTag(policy: string): HTMLMetaElement | null {
   if (typeof document === "undefined") return null;
 
-  let meta = document.head.querySelector(
+  let meta = document.head.querySelector<HTMLMetaElement>(
     'meta[http-equiv="Content-Security-Policy"]'
-  ) as HTMLMetaElement | null;
+  );
 
   if (!meta) {
     meta = document.createElement("meta");

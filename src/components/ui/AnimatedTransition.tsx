@@ -5,13 +5,40 @@ import { cx } from "@/lib/cx";
 export type TransitionVariant = "fade" | "slide-up" | "slide-left" | "scale" | "none";
 
 export interface AnimatedTransitionProps {
-  children: ReactNode;
-  variant?: TransitionVariant;
-  duration?: number;
-  delay?: number;
-  className?: string;
-  show?: boolean;
-  unmountOnExit?: boolean;
+  readonly children: ReactNode;
+  readonly variant?: TransitionVariant;
+  readonly duration?: number;
+  readonly delay?: number;
+  readonly className?: string;
+  readonly show?: boolean;
+  readonly unmountOnExit?: boolean;
+}
+
+function computeTransform(variant: TransitionVariant, isVisible: boolean): string | undefined {
+  if (variant === "slide-up") return isVisible ? "translateY(0)" : "translateY(12px)";
+  if (variant === "slide-left") return isVisible ? "translateX(0)" : "translateX(-12px)";
+  if (variant === "scale") return isVisible ? "scale(1)" : "scale(0.96)";
+  return undefined;
+}
+
+function useTransitionMount(show: boolean, unmountOnExit: boolean, duration: number) {
+  const [mounted, setMounted] = useState(false);
+  const [shouldRender, setShouldRender] = useState(show || !unmountOnExit);
+
+  useEffect(() => {
+    if (!show) {
+      setMounted(false);
+      if (!unmountOnExit) return;
+      const timer = setTimeout(() => setShouldRender(false), duration);
+      return () => clearTimeout(timer);
+    }
+
+    setShouldRender(true);
+    const raf = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(raf);
+  }, [show, unmountOnExit, duration]);
+
+  return { mounted, shouldRender };
 }
 
 /**
@@ -27,33 +54,14 @@ export function AnimatedTransition({
   className,
   show = true,
   unmountOnExit = false,
-}: AnimatedTransitionProps) {
+}: Readonly<AnimatedTransitionProps>) {
   const { reduceMotion } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  const [shouldRender, setShouldRender] = useState(show || !unmountOnExit);
+  const { mounted, shouldRender } = useTransitionMount(show, unmountOnExit, duration);
 
   const isReduced =
     reduceMotion ||
     (typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
-
-  useEffect(() => {
-    if (show) {
-      setShouldRender(true);
-      const raf = requestAnimationFrame(() => {
-        setMounted(true);
-      });
-      return () => cancelAnimationFrame(raf);
-    } else {
-      setMounted(false);
-      if (unmountOnExit) {
-        const timer = setTimeout(() => {
-          setShouldRender(false);
-        }, duration);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [show, unmountOnExit, duration]);
 
   if (unmountOnExit && !shouldRender) {
     return null;
@@ -64,19 +72,11 @@ export function AnimatedTransition({
   }
 
   const isVisible = show && mounted;
-
-  let initialTransform = "";
-  if (variant === "slide-up") {
-    initialTransform = isVisible ? "translateY(0)" : "translateY(12px)";
-  } else if (variant === "slide-left") {
-    initialTransform = isVisible ? "translateX(0)" : "translateX(-12px)";
-  } else if (variant === "scale") {
-    initialTransform = isVisible ? "scale(1)" : "scale(0.96)";
-  }
+  const initialTransform = computeTransform(variant, isVisible);
 
   const style: CSSProperties = {
     opacity: isVisible ? 1 : 0,
-    transform: initialTransform || undefined,
+    transform: initialTransform,
     transitionProperty: "opacity, transform",
     transitionDuration: `${duration}ms`,
     transitionDelay: `${delay}ms`,

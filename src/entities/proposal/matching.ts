@@ -2,17 +2,24 @@ import { PLATFORM_FEE_RATE } from "@/config/constants";
 import { normalizeSearch } from "@/lib/format/text";
 import type { MatchScore, Project, Proposal, RiskAssessment, User } from "@/types";
 
-/**
- * Recommendation and risk engine (client-side, deterministic).
- *
- * ## Why this exists
- * A job board without ranking forces freelancers to read every posting and
- * forces clients to read every bid. This module produces an **explainable**
- * score: every factor exposes its own 0–100 value and weight, so the UI can show
- * *why* a project is a good fit instead of an opaque number. All five factors are
- * computed from data already on the client, so it works identically in live and
- * demo mode, and it is fully unit-testable.
- */
+export type MatchFactor = MatchScore["factors"][number];
+export type MatchBreakdown = MatchScore;
+export type MatchingContext = MatchContext;
+export type RiskFlag = RiskAssessment["flags"][number];
+export type { MatchScore };
+
+export interface MatchContext {
+  readonly user: Pick<User, "skills" | "rating" | "completedProjects" | "hourlyRate"> & {
+    readonly city?: string;
+    readonly categories?: readonly string[];
+  };
+  readonly competitorCount?: number;
+}
+
+export interface RankedProject {
+  readonly project: Project;
+  readonly score: MatchScore;
+}
 
 const WEIGHTS = {
   skills: 0.3,
@@ -27,7 +34,7 @@ function clamp(value: number, min = 0, max = 100): number {
   return Math.min(max, Math.max(min, value));
 }
 
-function overlapRatio(skills: string[], tags: string[]): number {
+function overlapRatio(skills: readonly string[], tags: readonly string[]): number {
   if (skills.length === 0 || tags.length === 0) return 0.4;
   const normalizedTags = tags.map(normalizeSearch);
   const matches = skills.filter((skill) => {
@@ -37,12 +44,23 @@ function overlapRatio(skills: string[], tags: string[]): number {
   return matches.length / Math.min(skills.length, tags.length);
 }
 
-export interface MatchContext {
-  user: Pick<User, "skills" | "rating" | "completedProjects" | "hourlyRate" | "city"> & {
-    categories?: string[];
-  };
-  /** How many proposals the project already has (competition pressure). */
-  competitorCount?: number;
+function computeCategoryMatchValue(categoryMatch: boolean, hasTagHint: boolean): number {
+  if (categoryMatch) return 95;
+  if (hasTagHint) return 70;
+  return 45;
+}
+
+function resolveScoreTier(score: number): MatchScore["tier"] {
+  if (score >= 80) return "excellent";
+  if (score >= 60) return "good";
+  if (score >= 40) return "fair";
+  return "weak";
+}
+
+/** Fallback heuristic when the user has no declared category history. */
+function tagsHintCategory(project: Project, skills: readonly string[]): boolean {
+  const haystack = normalizeSearch(`${project.title} ${project.description}`);
+  return skills.some((skill) => haystack.includes(normalizeSearch(skill)));
 }
 
 export function computeMatchScore(project: Project, context: MatchContext): MatchScore {
@@ -61,7 +79,7 @@ export function computeMatchScore(project: Project, context: MatchContext): Matc
       normalizeSearch(category) === normalizeSearch(project.category?.englishTitle ?? "") ||
       normalizeSearch(category) === normalizeSearch(project.category?.title ?? "")
   );
-  const categoryValue = categoryMatch ? 95 : tagsHintCategory(project, skills) ? 70 : 45;
+  const categoryValue = computeCategoryMatchValue(categoryMatch, tagsHintCategory(project, skills));
 
   /* ------------------------------------------------------------- budget */
   const budget = project.budget || 0;
@@ -107,7 +125,7 @@ export function computeMatchScore(project: Project, context: MatchContext): Matc
 
   return {
     score: clamp(score),
-    tier: score >= 80 ? "excellent" : score >= 60 ? "good" : score >= 40 ? "fair" : "weak",
+    tier: resolveScoreTier(score),
     factors: factors.map((factor) => ({
       ...factor,
       labelKey: `matching.factor.${factor.key}`,
@@ -116,26 +134,19 @@ export function computeMatchScore(project: Project, context: MatchContext): Matc
   };
 }
 
-/** Fallback heuristic when the user has no declared category history. */
-function tagsHintCategory(project: Project, skills: string[]): boolean {
-  const haystack = normalizeSearch(`${project.title} ${project.description}`);
-  return skills.some((skill) => haystack.includes(normalizeSearch(skill)));
-}
+export const calculateMatch = computeMatchScore;
 
-export interface RankedProject {
-  project: Project;
-  score: MatchScore;
-}
-
-/** Ranks open projects for a freelancer, best first. */
 export function rankProjectsForUser(
-  projects: Project[],
+  projects: readonly Project[],
   context: MatchContext,
-  limit = 6
+  limit = 5
 ): RankedProject[] {
   return projects
     .filter((project) => project.status === "OPEN")
-    .map((project) => ({ project, score: computeMatchScore(project, context) }))
+    .map((project) => ({
+      project,
+      score: computeMatchScore(project, context),
+    }))
     .sort((a, b) => b.score.score - a.score.score)
     .slice(0, limit);
 }
@@ -146,21 +157,29 @@ export function rankProjectsForUser(
 
 export interface RiskContext {
   /** Average accepted proposal price for the same category. */
-  categoryAveragePrice?: number;
+  readonly categoryAveragePrice?: number;
   /** Average project budget in the same category. */
-  categoryAverageBudget?: number;
-  author?: Pick<User, "rating" | "completedProjects" | "createdAt">;
+  readonly categoryAverageBudget?: number;
+  readonly author?: Pick<User, "rating" | "completedProjects" | "createdAt">;
 }
 
-/**
- * Heuristic risk screening for a proposal.
- *
- * Purely advisory: it flags bids whose price deviates wildly from the category
- * norm, durations that do not match the money, and brand-new accounts, so the
- * admin console can review a short queue instead of every row.
- */
-export function assessProposalRisk(proposal: Partial<Proposal>, context: RiskContext = {}): RiskAssessment {
-  const flags: RiskAssessment["flags"] = [];
+const SEVERITY_WEIGHTS: Record<RiskFlag["severity"], number> = {
+  high: 45,
+  medium: 25,
+  low: 10,
+};
+
+function resolveRiskLevel(score: number): RiskAssessment["level"] {
+  if (score >= 45) return "high";
+  if (score >= 25) return "medium";
+  return "low";
+}
+
+function checkPriceAndDurationFlags(
+  proposal: Partial<Proposal>,
+  context: RiskContext,
+  flags: RiskFlag[]
+): void {
   const budget = context.categoryAverageBudget ?? 0;
   const price = proposal.price ?? 0;
   const duration = proposal.duration ?? 0;
@@ -185,27 +204,34 @@ export function assessProposalRisk(proposal: Partial<Proposal>, context: RiskCon
       });
     }
   }
+}
 
-  if (context.author) {
-    const accountAgeDays = context.author.createdAt
-      ? (Date.now() - new Date(context.author.createdAt).getTime()) / 86_400_000
-      : 999;
-    if (accountAgeDays < 7 && (context.author.completedProjects ?? 0) === 0) {
-      flags.push({ key: "newAccount", labelKey: "trust.flag.newAccount", severity: "medium" });
-    }
-    if ((context.author.rating ?? 5) < 3.2) {
-      flags.push({ key: "lowRating", labelKey: "trust.flag.lowRating", severity: "low" });
-    }
+function checkAuthorFlags(author: RiskContext["author"], flags: RiskFlag[]): void {
+  if (!author) return;
+  const accountAgeDays = author.createdAt
+    ? (Date.now() - new Date(author.createdAt).getTime()) / 86_400_000
+    : 999;
+  if (accountAgeDays < 7 && (author.completedProjects ?? 0) === 0) {
+    flags.push({ key: "newAccount", labelKey: "trust.flag.newAccount", severity: "medium" });
   }
+  if ((author.rating ?? 5) < 3.2) {
+    flags.push({ key: "lowRating", labelKey: "trust.flag.lowRating", severity: "low" });
+  }
+}
 
-  const score = flags.reduce(
-    (sum, flag) => sum + (flag.severity === "high" ? 45 : flag.severity === "medium" ? 25 : 10),
-    0
-  );
+/**
+ * Heuristic risk screening for a proposal.
+ */
+export function assessProposalRisk(proposal: Partial<Proposal>, context: RiskContext = {}): RiskAssessment {
+  const flags: RiskFlag[] = [];
+  checkPriceAndDurationFlags(proposal, context, flags);
+  checkAuthorFlags(context.author, flags);
+
+  const score = flags.reduce((sum, flag) => sum + SEVERITY_WEIGHTS[flag.severity], 0);
 
   return {
     score: clamp(score),
-    level: score >= 45 ? "high" : score >= 25 ? "medium" : "low",
+    level: resolveRiskLevel(score),
     flags,
   };
 }
@@ -215,28 +241,29 @@ export function assessProposalRisk(proposal: Partial<Proposal>, context: RiskCon
 /* -------------------------------------------------------------------------- */
 
 export interface SimulationInput {
-  budget: number;
-  price: number;
-  duration: number;
-  competitorCount?: number;
-  expectedDuration?: number;
+  readonly budget: number;
+  readonly price: number;
+  readonly duration: number;
+  readonly competitorCount?: number;
+  readonly expectedDuration?: number;
 }
 
 export interface SimulationResult {
-  probability: number;
-  verdict: "strong" | "ok" | "weak";
-  suggestedMin: number;
-  suggestedMax: number;
-  breakdown: Array<{ key: string; impact: number }>;
+  readonly probability: number;
+  readonly verdict: "strong" | "ok" | "weak";
+  readonly suggestedMin: number;
+  readonly suggestedMax: number;
+  readonly breakdown: readonly { readonly key: string; readonly impact: number }[];
+}
+
+function resolveSimulationVerdict(probability: number): SimulationResult["verdict"] {
+  if (probability >= 0.6) return "strong";
+  if (probability >= 0.35) return "ok";
+  return "weak";
 }
 
 /**
  * "What-if" acceptance simulator.
- *
- * A transparent logistic-ish model: it compares the bid to the project budget,
- * the delivery window to a reference duration, and applies a competition
- * penalty. The goal is not statistical truth but an interactive, explainable
- * guide that helps a freelancer calibrate a bid before submitting it.
  */
 export function simulateProposal(input: SimulationInput): SimulationResult {
   const { budget, price, duration } = input;
@@ -253,7 +280,7 @@ export function simulateProposal(input: SimulationInput): SimulationResult {
 
   return {
     probability,
-    verdict: probability >= 0.6 ? "strong" : probability >= 0.35 ? "ok" : "weak",
+    verdict: resolveSimulationVerdict(probability),
     suggestedMin: Math.round((budget * 0.62) / 100_000) * 100_000,
     suggestedMax: Math.round((budget * 0.96) / 100_000) * 100_000,
     breakdown: [

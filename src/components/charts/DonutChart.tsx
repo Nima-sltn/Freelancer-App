@@ -5,12 +5,12 @@ import { useT } from "@/store/i18n";
 import { cx } from "@/lib/cx";
 import { pickColor } from "./utils";
 
-interface DonutChartProps {
-  data: DistributionSlice[];
-  size?: number;
-  thickness?: number;
-  centerLabel?: string;
-  className?: string;
+export interface DonutChartProps {
+  readonly data: readonly DistributionSlice[];
+  readonly size?: number;
+  readonly thickness?: number;
+  readonly centerLabel?: string;
+  readonly className?: string;
 }
 
 /** Donut chart with an interactive legend; arcs are plain SVG stroke dashes. */
@@ -20,7 +20,7 @@ export function DonutChart({
   thickness = 22,
   centerLabel,
   className,
-}: DonutChartProps) {
+}: Readonly<DonutChartProps>) {
   const { t } = useT();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
@@ -55,7 +55,8 @@ export function DonutChart({
   return (
     <div className={cx("flex flex-col items-center gap-5 sm:flex-row sm:items-center", className)}>
       <div className="relative shrink-0" style={{ width: size, height: size }}>
-        <svg width={size} height={size} className="-rotate-90" role="img" aria-label={t("charts.donutLabel")}>
+        <svg width={size} height={size} className="-rotate-90" aria-label={t("charts.donutLabel")}>
+          <title>{t("charts.donutLabel")}</title>
           <circle
             cx={size / 2}
             cy={size / 2}

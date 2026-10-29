@@ -17,7 +17,8 @@ export interface CsvColumn<T> {
 }
 
 function escapeCsvCell(value: unknown): string {
-  const text = value === null || value === undefined ? "" : String(value);
+  if (value === null || value === undefined) return "";
+  const text = typeof value === "object" ? JSON.stringify(value) : String(value);
   if (/[",\n;]/.test(text)) {
     return `"${text.replace(/"/g, '""')}"`;
   }
@@ -111,28 +112,15 @@ export function exportFilename(base: string, extension: string): string {
 }
 
 export async function copyToClipboard(text: string): Promise<boolean> {
-  try {
-    if (navigator.clipboard?.writeText) {
+  if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+    try {
       await navigator.clipboard.writeText(text);
       return true;
+    } catch {
+      return false;
     }
-  } catch {
-    /* fall through to the legacy path */
   }
-  try {
-    const area = document.createElement("textarea");
-    area.value = text;
-    area.setAttribute("readonly", "");
-    area.style.position = "fixed";
-    area.style.opacity = "0";
-    document.body.appendChild(area);
-    area.select();
-    const ok = document.execCommand("copy");
-    area.remove();
-    return ok;
-  } catch {
-    return false;
-  }
+  return false;
 }
 
 /** Localised number for exports (Persian digits in fa, Latin in en). */

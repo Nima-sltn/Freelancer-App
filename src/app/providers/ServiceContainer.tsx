@@ -26,9 +26,9 @@ const defaultServices: ServiceRegistry = {
 const ServiceContext = createContext<ServiceRegistry>(defaultServices);
 
 export interface ServiceProviderProps {
-  children: ReactNode;
+  readonly children: ReactNode;
   /** Custom services override for testing or mocked environments */
-  overrides?: Partial<ServiceRegistry>;
+  readonly overrides?: Partial<ServiceRegistry>;
 }
 
 /**
@@ -37,7 +37,7 @@ export interface ServiceProviderProps {
  * Provides swappable service instances throughout the application. Enables
  * hermetic testing and clean dependency inversion without prop drilling.
  */
-export function ServiceProvider({ children, overrides }: ServiceProviderProps) {
+export function ServiceProvider({ children, overrides }: Readonly<ServiceProviderProps>) {
   const services = useMemo<ServiceRegistry>(() => {
     if (!overrides) return defaultServices;
     return {

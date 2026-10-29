@@ -5,15 +5,15 @@ import { useT } from "@/store/i18n";
 import { cx } from "@/lib/cx";
 import { buildAreaPath, buildSmoothPath, createScale, maxOf, niceCeil, toPoints } from "./utils";
 
-interface AreaChartProps {
-  data: SeriesPoint[];
-  height?: number;
-  color?: string;
-  secondaryColor?: string;
+export interface AreaChartProps {
+  readonly data: readonly SeriesPoint[];
+  readonly height?: number;
+  readonly color?: string;
+  readonly secondaryColor?: string;
   /** Formats tooltip values (e.g. currency). */
-  valueFormatter?: (value: number) => string;
-  showSecondary?: boolean;
-  className?: string;
+  readonly valueFormatter?: (value: number) => string;
+  readonly showSecondary?: boolean;
+  readonly className?: string;
 }
 
 const PADDING = { top: 16, right: 16, bottom: 28, left: 44 };
@@ -35,7 +35,7 @@ export function AreaChart({
   valueFormatter = (value) => formatNumber(value),
   showSecondary = false,
   className,
-}: AreaChartProps) {
+}: Readonly<AreaChartProps>) {
   const { t } = useT();
   const gradientId = useId().replace(/:/g, "");
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -76,9 +76,9 @@ export function AreaChart({
       <svg
         viewBox={`0 0 ${width} ${height}`}
         className="h-auto w-full"
-        role="img"
         aria-label={t("charts.areaLabel")}
         onMouseLeave={() => setActiveIndex(null)}>
+        <title>{t("charts.areaLabel")}</title>
         <defs>
           <linearGradient id={`area-${gradientId}`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={color} stopOpacity="0.32" />
@@ -170,12 +170,10 @@ export function AreaChart({
       </svg>
 
       {active ? (
-        <div
-          role="status"
-          className="pointer-events-none absolute top-2 start-1/2 -translate-x-1/2 rounded-lg bg-ink px-3 py-1.5 text-xs font-bold text-ink-inverted shadow-pop rtl:translate-x-1/2">
+        <output className="pointer-events-none absolute top-2 start-1/2 -translate-x-1/2 rounded-lg bg-ink px-3 py-1.5 text-xs font-bold text-ink-inverted shadow-pop rtl:translate-x-1/2">
           <span className="me-2">{active.label}</span>
           <span className="tabular-nums">{valueFormatter(active.value)}</span>
-        </div>
+        </output>
       ) : null}
     </div>
   );

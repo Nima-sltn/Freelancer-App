@@ -11,6 +11,12 @@ import { resetDemoData } from "@/mocks";
 import { fuzzyScore } from "@/lib/format/text";
 import type { Project, User } from "@/types";
 
+function getRoleBasePath(role?: User["role"]): string {
+  if (role === "FREELANCER") return "/freelancer";
+  if (role === "ADMIN") return "/admin";
+  return "/owner";
+}
+
 /**
  * Command surface.
  *
@@ -23,10 +29,10 @@ import type { Project, User } from "@/types";
 export function useGlobalCommands({
   user,
   projects = [],
-}: {
-  user: User | undefined;
-  projects?: Project[];
-}) {
+}: Readonly<{
+  readonly user: User | undefined;
+  readonly projects?: readonly Project[];
+}>) {
   const { t } = useT();
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -66,7 +72,9 @@ export function useGlobalCommands({
         shortcut: "⌘Z",
         icon: <span aria-hidden="true">↩️</span>,
         hint: `${entries.length}`,
-        perform: () => void undo(),
+        perform: () => {
+          undo();
+        },
       },
       {
         id: "action:create-project",
@@ -101,7 +109,7 @@ export function useGlobalCommands({
     }
 
     projects.slice(0, 40).forEach((project) => {
-      const prefix = user?.role === "FREELANCER" ? "/freelancer" : user?.role === "ADMIN" ? "/admin" : "/owner";
+      const prefix = getRoleBasePath(user?.role);
       list.push({
         id: `project:${project._id}`,
         label: project.title,

@@ -5,13 +5,13 @@ import { useT } from "@/store/i18n";
 import { cx } from "@/lib/cx";
 
 interface SearchInputProps {
-  value: string;
-  onChange: (value: string) => void;
-  placeholder?: string;
-  debounceMs?: number;
-  className?: string;
-  autoFocus?: boolean;
-  ariaLabel?: string;
+  readonly value: string;
+  readonly onChange: (value: string) => void;
+  readonly placeholder?: string;
+  readonly debounceMs?: number;
+  readonly className?: string;
+  readonly autoFocus?: boolean;
+  readonly ariaLabel?: string;
 }
 
 /**
@@ -28,7 +28,7 @@ export function SearchInput({
   className,
   autoFocus,
   ariaLabel,
-}: SearchInputProps) {
+}: Readonly<SearchInputProps>) {
   const { t } = useT();
   const [draft, setDraft] = useState(value);
   const debounced = useDebouncedValue(draft, debounceMs);

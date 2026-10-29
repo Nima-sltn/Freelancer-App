@@ -29,11 +29,11 @@ export function Timeline({
   items,
   className,
   emptyMessage,
-}: {
-  items: TimelineItem[];
-  className?: string;
-  emptyMessage?: string;
-}) {
+}: Readonly<{
+  readonly items: readonly TimelineItem[];
+  readonly className?: string;
+  readonly emptyMessage?: string;
+}>) {
   const { t } = useT();
   const resolvedEmptyMessage = emptyMessage ?? t("timeline.empty");
   if (items.length === 0) {

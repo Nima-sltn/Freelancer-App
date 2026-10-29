@@ -7,10 +7,16 @@ import { IconX } from "@/components/ui/icons";
 import { IconFor } from "@/components/ui/IconFor";
 
 interface SidebarProps {
-  role: UserRole | undefined;
-  onNavigate?: () => void;
-  onClose?: () => void;
-  className?: string;
+  readonly role: UserRole | undefined;
+  readonly onNavigate?: () => void;
+  readonly onClose?: () => void;
+  readonly className?: string;
+}
+
+function getGroupLabelKey(group: string): "nav.menu" | "nav.analytics" | "nav.settings" {
+  if (group === "work") return "nav.menu";
+  if (group === "insight") return "nav.analytics";
+  return "nav.settings";
 }
 
 /**
@@ -20,7 +26,7 @@ interface SidebarProps {
  * two can never drift apart. Active state uses `NavLink` (real anchors) with
  * `aria-current` for assistive tech.
  */
-export function Sidebar({ role, onNavigate, onClose, className }: SidebarProps) {
+export function Sidebar({ role, onNavigate, onClose, className }: Readonly<SidebarProps>) {
   const { t } = useT();
   const groups = navItemsByGroup(role);
 
@@ -44,7 +50,7 @@ export function Sidebar({ role, onNavigate, onClose, className }: SidebarProps) 
       {groups.map(({ group, items }) => (
         <div key={group} className="flex flex-col gap-1.5">
           <p className="px-3 text-[0.65rem] font-black uppercase tracking-wide text-ink-muted">
-            {t(group === "work" ? "nav.menu" : group === "insight" ? "nav.analytics" : "nav.settings")}
+            {t(getGroupLabelKey(group))}
           </p>
           <ul className="flex flex-col gap-1">
             {items.map((item) => (

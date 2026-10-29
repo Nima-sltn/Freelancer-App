@@ -6,17 +6,17 @@ import { useT } from "@/store/i18n";
 import { SORT_OPTIONS } from "@/config/constants";
 import type { CategoryOption } from "@/types";
 
-interface ProjectFiltersBarProps {
-  search: string;
-  status: string;
-  sort: string;
-  category: string;
-  categories: CategoryOption[];
-  activeCount: number;
-  onChange: (patch: Record<string, string | undefined>) => void;
-  onReset: () => void;
-  onRefresh?: () => void;
-  isFetching?: boolean;
+export interface ProjectFiltersBarProps {
+  readonly search: string;
+  readonly status: string;
+  readonly sort: string;
+  readonly category: string;
+  readonly categories: readonly CategoryOption[];
+  readonly activeCount: number;
+  readonly onChange: (patch: Record<string, string | undefined>) => void;
+  readonly onReset: () => void;
+  readonly onRefresh?: () => void;
+  readonly isFetching?: boolean;
 }
 
 /** Filter bar whose entire state lives in the URL (shareable, back-button safe). */
@@ -31,7 +31,7 @@ export function ProjectFiltersBar({
   onReset,
   onRefresh,
   isFetching,
-}: ProjectFiltersBarProps) {
+}: Readonly<ProjectFiltersBarProps>) {
   const { t } = useT();
 
   return (

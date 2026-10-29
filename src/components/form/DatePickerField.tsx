@@ -10,15 +10,15 @@ import { useT } from "@/store/i18n";
 import { FormField } from "./FormField";
 
 interface DatePickerFieldProps {
-  name: string;
-  label?: ReactNode;
-  value: Date | DateObject | string | null;
-  onChange: (date: Date) => void;
-  hint?: ReactNode;
-  error?: ReactNode;
-  required?: boolean;
-  className?: string;
-  minDate?: Date;
+  readonly name: string;
+  readonly label?: ReactNode;
+  readonly value: Date | DateObject | string | null;
+  readonly onChange: (date: Date) => void;
+  readonly hint?: ReactNode;
+  readonly error?: ReactNode;
+  readonly required?: boolean;
+  readonly className?: string;
+  readonly minDate?: Date;
 }
 
 /**
@@ -37,7 +37,7 @@ export function DatePickerField({
   required,
   className,
   minDate,
-}: DatePickerFieldProps) {
+}: Readonly<DatePickerFieldProps>) {
   const isFa = getActiveLocale() === "fa";
   const { t } = useT();
   const preview = value ? formatRelative(value as string) : null;

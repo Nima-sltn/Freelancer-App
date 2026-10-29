@@ -53,7 +53,7 @@ function loadStoredFlags(): Partial<FeatureFlags> {
 export function getFeatureFlag<K extends keyof FeatureFlags>(key: K): boolean {
   const overrides = loadStoredFlags();
   if (key in overrides && typeof overrides[key] === "boolean") {
-    return overrides[key] as boolean;
+    return overrides[key];
   }
   return DEFAULT_FLAGS[key];
 }

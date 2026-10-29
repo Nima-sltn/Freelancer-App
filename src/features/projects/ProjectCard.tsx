@@ -11,16 +11,16 @@ import { useT } from "@/store/i18n";
 import { cx } from "@/lib/cx";
 import type { MatchScore, Project } from "@/types";
 
-interface ProjectCardProps {
-  project: Project;
-  score?: MatchScore;
-  href?: string;
-  footer?: React.ReactNode;
-  className?: string;
+export interface ProjectCardProps {
+  readonly project: Project;
+  readonly score?: MatchScore;
+  readonly href?: string;
+  readonly footer?: React.ReactNode;
+  readonly className?: string;
 }
 
 /** Project summary card. High-finish editorial card with clear visual hierarchy. */
-export function ProjectCard({ project, score, href, footer, className }: ProjectCardProps) {
+export function ProjectCard({ project, score, href, footer, className }: Readonly<ProjectCardProps>) {
   const { t, locale } = useT();
   const deadline = getDeadlineInfo(project.deadline);
   const owner = project.owner as { name?: string } | undefined;
@@ -115,8 +115,16 @@ export function ProjectCard({ project, score, href, footer, className }: Project
   );
 }
 
+export interface ProjectCardActionsProps {
+  readonly project: Project;
+  readonly onPropose?: () => void;
+}
+
 /** Card footer action for freelancers browsing open work. */
-export function ProjectCardActions({ project, onPropose }: { project: Project; onPropose?: () => void }) {
+export function ProjectCardActions({
+  project,
+  onPropose,
+}: Readonly<ProjectCardActionsProps>) {
   const { t } = useT();
   const isOpen = project.status === "OPEN";
 

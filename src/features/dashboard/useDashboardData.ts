@@ -94,16 +94,17 @@ export function useDashboardData(user: User | undefined, role: User["role"] | un
     () => (user ? computeExperience(user, proposals) : undefined),
     [proposals, user]
   );
-  const leaderboard = useMemo(
-    () => (isFreelancer ? buildLeaderboard(user ? [user, ...usersQuery.users] : usersQuery.users, proposals) : []),
-    [isFreelancer, proposals, user, usersQuery.users]
-  );
+  const leaderboard = useMemo(() => {
+    if (!isFreelancer) return [];
+    const targetUsers = user ? [user, ...usersQuery.users] : usersQuery.users;
+    return buildLeaderboard(targetUsers, proposals);
+  }, [isFreelancer, proposals, user, usersQuery.users]);
 
   const refetchAll = () => {
-    void published.refetch();
-    void owned.refetch();
-    void proposalsQuery.refetch();
-    if (isAdmin) void usersQuery.refetch();
+    published.refetch();
+    owned.refetch();
+    proposalsQuery.refetch();
+    if (isAdmin) usersQuery.refetch();
   };
 
   return {

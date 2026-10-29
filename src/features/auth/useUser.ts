@@ -39,7 +39,7 @@ export function useUser(): SessionState {
     isAuthenticated: Boolean(user?._id),
     isVerified: Boolean(user?.isActive) && Number(user?.status) === 2,
     refetch: () => {
-      void refetch();
+      refetch();
     },
   };
 }

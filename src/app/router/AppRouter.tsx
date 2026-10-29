@@ -54,7 +54,7 @@ function NavigationAnnouncer() {
   }, [pathname]);
 
   return (
-    <p id="route-announcer" role="status" aria-live="polite" className="sr-only" />
+    <output id="route-announcer" className="sr-only" />
   );
 }
 

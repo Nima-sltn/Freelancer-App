@@ -4,9 +4,9 @@ import { APP_META, env } from "@/config/env";
 import { translateDirect } from "@/store/i18n";
 
 interface ErrorBoundaryProps {
-  children: ReactNode;
+  readonly children: ReactNode;
   /** Optional custom fallback; defaults to the full-page recovery screen. */
-  fallback?: ReactNode;
+  readonly fallback?: ReactNode;
 }
 
 interface ErrorBoundaryState {
@@ -35,7 +35,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
   }
 
-  private reset = () => {
+  private readonly reset = () => {
     this.setState({ error: null });
   };
 
