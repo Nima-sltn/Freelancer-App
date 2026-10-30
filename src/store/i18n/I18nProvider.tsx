@@ -13,7 +13,7 @@ import { formatRelative } from "@/lib/format/dates";
 import { dictionaries, fa, type TranslationKey } from "./translations";
 
 export type TranslateParams = Record<string, string | number | undefined>;
-export type AnyTranslationKey = TranslationKey | (string & {});
+export type AnyTranslationKey = string;
 
 export interface I18nContextValue {
   readonly locale: Locale;
