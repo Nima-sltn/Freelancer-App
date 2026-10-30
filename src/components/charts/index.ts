@@ -4,5 +4,6 @@ export { DonutChart } from "./DonutChart";
 export { Sparkline } from "./Sparkline";
 export { HeatmapCalendar, type HeatmapCalendarProps, type HeatmapActivityDay } from "./HeatmapCalendar";
 export { ChartFrame, ChartLegend } from "./ChartFrame";
+export { TrustTopologyCanvas, type TrustTopologyCanvasProps } from "./TrustTopologyCanvas";
 export { CHART_COLORS, pickColor } from "./utils";
 export type { LegendItem } from "./ChartFrame";

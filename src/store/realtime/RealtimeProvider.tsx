@@ -13,6 +13,7 @@ import { env } from "@/config/env";
 import { queryKeys } from "@/config/queryKeys";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { APP_EVENTS, appEvents } from "@/lib/eventBus";
+import { crossTabSync } from "@/lib/sync";
 
 export interface RealtimeContextValue {
   /** ISO timestamp of the last successful refresh. */
@@ -21,6 +22,8 @@ export interface RealtimeContextValue {
   syncNow: () => Promise<void>;
   /** Seconds until the next automatic refresh (for countdowns). */
   nextSyncIn: number;
+  /** Number of concurrently active browser tabs synchronized via BroadcastChannel */
+  activeTabs: number;
 }
 
 const RealtimeContext = createContext<RealtimeContextValue | undefined>(undefined);
@@ -46,6 +49,7 @@ export function RealtimeProvider({ children }: Readonly<RealtimeProviderProps>) 
   const { online, degraded } = useOnlineStatus();
   const [lastSyncAt, setLastSyncAt] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(SYNC_INTERVAL_MS / 1000);
+  const [activeTabs, setActiveTabs] = useState(() => crossTabSync.activePeerCount + 1);
   const isSyncing = useRef(false);
 
   const syncNow = useCallback(async () => {
@@ -66,6 +70,29 @@ export function RealtimeProvider({ children }: Readonly<RealtimeProviderProps>) 
   }, [queryClient]);
 
   useEffect(() => {
+    crossTabSync.announcePresence();
+    const unsub1 = crossTabSync.on("TRANSACTION_COMMITTED", () => {
+      void syncNow();
+    });
+    const unsub2 = crossTabSync.on("TRANSACTION_UNDONE", () => {
+      void syncNow();
+    });
+    const unsub3 = crossTabSync.on("PEER_HELLO", () => {
+      setActiveTabs(crossTabSync.activePeerCount + 1);
+    });
+    const unsub4 = crossTabSync.on("PEER_PONG", () => {
+      setActiveTabs(crossTabSync.activePeerCount + 1);
+    });
+
+    return () => {
+      unsub1();
+      unsub2();
+      unsub3();
+      unsub4();
+    };
+  }, [syncNow]);
+
+  useEffect(() => {
     if (!env.flags.realtime || !online || degraded) return;
 
     const interval = window.setInterval(() => {
@@ -84,8 +111,8 @@ export function RealtimeProvider({ children }: Readonly<RealtimeProviderProps>) 
   }, []);
 
   const value = useMemo<RealtimeContextValue>(
-    () => ({ lastSyncAt, isSyncing: isSyncing.current, syncNow, nextSyncIn: countdown }),
-    [countdown, lastSyncAt, syncNow]
+    () => ({ lastSyncAt, isSyncing: isSyncing.current, syncNow, nextSyncIn: countdown, activeTabs }),
+    [activeTabs, countdown, lastSyncAt, syncNow]
   );
 
   return <RealtimeContext.Provider value={value}>{children}</RealtimeContext.Provider>;

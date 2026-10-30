@@ -501,3 +501,112 @@ export interface FeatureFlags {
   Runtime flags enable immediate feature toggling during live demos and manual QA
   without rebuilding or redeploying the static frontend bundle.
 
+---
+
+## 15. Architectural models & diagrams (C4 & Sequence)
+
+### 15.1 C4 System Context diagram
+
+The system context diagram shows the actors, the single-page application boundary, and external systems:
+
+```mermaid
+graph TD
+    Client["Client / Project Owner"] -->|Creates projects, funds escrow, decides bids| SPA["Freelancer App SPA (Vite + React)"]
+    Freelancer["Freelancer / Bidder"] -->|Discovers projects, submits proposals, tracks payouts| SPA
+    Admin["Platform Administrator"] -->|Audits transactions, resolves disputes| SPA
+
+    SPA -->|Offline Cache & Background Sync| SW["Service Worker & CacheStorage"]
+    SPA -->|Peer-to-peer sync with Lamport clocks| BC["BroadcastChannel (Multi-tab)"]
+    SPA -->|REST API Requests| API["Backend API (Express / Node.js)"]
+    SPA -->|Demo Mode Isolation| MockAdapter["Mock Axios Transport"]
+```
+
+### 15.2 C4 Container & Layer Architecture
+
+```mermaid
+graph TD
+    subgraph Layer6["Layer 6: App & Pages"]
+        AppRouter["AppRouter & Suspense"]
+        Shell["AppShell & Topbar"]
+        Pages["Route Pages (Projects, Trust, Wallet...)"]
+    end
+
+    subgraph Layer5["Layer 5: Features"]
+        ProjectsFeat["Projects & Bidding"]
+        TrustFeat["Trust & Merkle Proofs"]
+        DashboardFeat["Dashboard Aggregator"]
+    end
+
+    subgraph Layer4["Layer 4: Components"]
+        UI["UI Primitives & Badges"]
+        Charts["Canvas Topology & SVG Charts"]
+        Layout["Sidebar, Topbar & HeaderControls"]
+    end
+
+    subgraph Layer3["Layer 3: State & Hooks"]
+        TxProvider["TransactionProvider (ACID)"]
+        RealtimeProvider["RealtimeProvider"]
+        I18nProvider["I18nProvider"]
+    end
+
+    subgraph Layer2["Layer 2: Pure Domain Entities"]
+        MerkleEngine["MerkleTree & HashChain"]
+        FSM["Project & Proposal FSM"]
+        Ledger["Ledger & NetPayout"]
+        Markov["Markov Navigation Preloader"]
+    end
+
+    subgraph Layer1["Layer 1: Lib & Config"]
+        SoundEngine["Tactile Sound Synthesizer (Web Audio)"]
+        CrossTabSync["CrossTabSyncEngine (BroadcastChannel)"]
+        HTTPClient["HTTP Client & Errors"]
+    end
+
+    Layer6 --> Layer5
+    Layer5 --> Layer4
+    Layer5 --> Layer3
+    Layer4 --> Layer3
+    Layer3 --> Layer2
+    Layer2 --> Layer1
+```
+
+### 15.3 Cryptographically Verifiable ACID Commit & Cross-Tab Replication
+
+The following sequence illustrates the end-to-end lifecycle of a client mutation, from optimistic cache update through cryptographic Merkle tree commitment, acoustic feedback, and peer tab synchronization:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as User / UI
+    participant Tx as TransactionProvider
+    participant Cache as React Query Cache
+    participant API as Backend / Mock API
+    participant Crypto as Merkle Tree & HashChain
+    participant Audio as Web Audio Synthesizer
+    participant Sync as BroadcastChannel Sync
+    participant Peer as Peer Browser Tabs
+
+    User->>Tx: run({ resource: "project", request, inverse })
+    Tx->>Cache: Apply optimistic patches (Atomicity)
+    Tx->>API: Dispatch HTTP request (Durability)
+
+    alt Request Succeeds (200 OK)
+        API-->>Tx: HTTP Response
+        Tx->>Tx: State: "committed"
+        Tx->>Crypto: Hash record & recalculate Merkle root
+        Crypto-->>Tx: New Root Hash: 0x7a8f...
+        Tx->>Audio: play("commit") (12ms tactile pop)
+        Tx->>Sync: broadcast("TRANSACTION_COMMITTED", { id })
+        Sync->>Peer: Peer message received (Lamport clock + 1)
+        Peer->>Peer: Invalidate queries & sync state live
+        Tx-->>User: Success toast & resolved data
+    else Network Failure / Server Error
+        API-->>Tx: Error / Timeout
+        Tx->>Cache: Rollback to captured inverse (Atomicity)
+        Tx->>Tx: State: "rolled-back"
+        Tx->>Audio: play("rollback") (low frequency thud)
+        Tx-->>User: Error notification & rollback feedback
+    end
+```
+
+

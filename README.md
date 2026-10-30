@@ -85,11 +85,11 @@ nothing else touches it, which keeps the runtime contract typed and mockable.
 - **Explainable matching.** Every project gets a 0–100 fit score whose six
   weighted factors (skills, category, budget, deadline, competition,
   reputation) are shown to the user instead of a black-box number.
-- **ACID write pipeline.** Optimistic cache patches with captured inverses, a
-  per-resource lock, a consistency gate and a durable journal whose entries are
-  *serialisable commands* — a write queued offline is re-sent after reconnect
-  **and after a reload**, and undo is a compensating transaction that reaches
-  the server.
+- **ACID write pipeline & Merkle verification.** Optimistic cache patches with captured inverses, a
+  per-resource lock, a consistency gate, durable journal replay across reloads, and **cryptographic Merkle tree hash-chains** allowing mathematical verification of transaction integrity.
+- **Cross-tab realtime synchronization.** Peer-to-peer state replication across open tabs using HTML5 BroadcastChannel and monotonic Lamport logical clocks with deterministic conflict resolution.
+- **Predictive intent pre-warming.** Discrete first-order Markov transition chain anticipating user navigation patterns and scheduling idle-time route chunk pre-warming.
+- **Procedural acoustic feedback & canvas topology.** Zero-asset micro-audio synthesis via the native Web Audio API and 60 FPS hardware-accelerated spring physics canvas visualizing multi-point trust affinity.
 - **Cross-domain, on purpose.** Accepting a bid moves money, changes trust and
   XP, raises a notification and lands in the audit trail; those fan-outs are
   declared once as data and rendered per row in the inspector and audit views

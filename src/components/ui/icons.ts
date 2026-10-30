@@ -68,6 +68,8 @@ export {
   HiOutlineFingerPrint as IconFingerprint,
   HiOutlineCube as IconCube,
   HiOutlineDeviceMobile as IconMobile,
+  HiOutlineVolumeUp as IconVolumeUp,
+  HiOutlineVolumeOff as IconVolumeOff,
 } from "react-icons/hi";
 
 export {

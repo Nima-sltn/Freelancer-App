@@ -5,6 +5,7 @@ import { FeatureErrorBoundary } from "@/components/feedback/FeatureErrorBoundary
 import { AppShell } from "@/app/shell/AppShell";
 import { PublicShell } from "@/components/layout/PublicShell";
 import { ProtectedRoute } from "../guards/ProtectedRoute";
+import { NavigationMarkovEngine } from "@/entities/navigation";
 
 /**
  * Routing.
@@ -40,12 +41,49 @@ const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
 const NotificationsPage = lazy(() => import("@/pages/NotificationsPage"));
 const JourneyPage = lazy(() => import("@/pages/JourneyPage"));
 
-/** Announces SPA navigations and resets scroll position. */
+const markovEngine = new NavigationMarkovEngine();
+
+const PREFETCH_LOADERS: Record<string, () => Promise<unknown>> = {
+  "/projects": () => import("@/pages/ProjectsPage"),
+  "/dashboard": () => import("@/pages/DashboardPage"),
+  "/trust": () => import("@/pages/TrustPage"),
+  "/proposals": () => import("@/pages/ProposalsPage"),
+  "/wallet": () => import("@/pages/WalletPage"),
+  "/timeline": () => import("@/pages/TimelinePage"),
+  "/journey": () => import("@/pages/JourneyPage"),
+};
+
+/** Announces SPA navigations, records Markov transitions, and pre-warms routes. */
 function NavigationAnnouncer() {
   const { pathname } = useLocation();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+    markovEngine.recordTransition(pathname);
+
+    // Predict likely next routes based on Markov transition matrix
+    const predictions = markovEngine.predictNextRoutes(
+      pathname,
+      Object.keys(PREFETCH_LOADERS)
+    );
+    const toPrefetch = predictions.filter((p) => p.shouldPrefetch);
+
+    if (toPrefetch.length > 0) {
+      const scheduleIdle =
+        typeof window !== "undefined" && "requestIdleCallback" in window
+          ? window.requestIdleCallback
+          : (cb: () => void) => setTimeout(cb, 200);
+
+      scheduleIdle(() => {
+        toPrefetch.forEach((pred) => {
+          const loader = PREFETCH_LOADERS[pred.route];
+          if (loader) {
+            void loader();
+          }
+        });
+      });
+    }
+
     const region = document.getElementById("route-announcer");
     if (region) {
       const isEn = document.documentElement.lang === "en";

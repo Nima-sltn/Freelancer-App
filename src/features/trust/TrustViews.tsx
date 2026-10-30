@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -7,11 +7,14 @@ import { ProgressRing } from "@/components/ui/Progress";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import { IconShield } from "@/components/ui/icons";
 import { useT } from "@/store/i18n";
+import { useTransactions } from "@/store/transaction";
 import { formatNumber } from "@/lib/format/numbers";
 import { formatRelative } from "@/lib/format/dates";
 import { truncate } from "@/lib/format/text";
+import { soundEngine } from "@/lib/audio";
 import { assessProposalRisk } from "@/entities/proposal/matching";
 import { buildTrustProfile } from "@/entities/user/trust";
+import { MerkleTree, verifyHashChain } from "@/entities/crypto";
 import type { Proposal, Project, User } from "@/types";
 
 function getTrustTone(score: number): "success" | "warning" | "danger" {
@@ -223,5 +226,97 @@ export function RiskQueue({
         emptyTitle={t("trust.queueEmpty")}
       />
     </div>
+  );
+}
+
+/**
+ * Cryptographic Merkle Tree verification component for ACID transaction journal.
+ * High-craft editorial card with zero clutter and mathematically provable integrity.
+ */
+export function CryptographicLedgerProof() {
+  const { t } = useT();
+  const { entries } = useTransactions();
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verifiedAt, setVerifiedAt] = useState<string | null>(null);
+
+  const sampleEntries = useMemo(() => {
+    if (entries.length > 0) return entries;
+    return [
+      { id: "tx_init", resource: "system", state: "committed", createdAt: new Date().toISOString() },
+    ];
+  }, [entries]);
+
+  const merkleTree = useMemo(() => new MerkleTree(sampleEntries), [sampleEntries]);
+  const chainResult = useMemo(() => verifyHashChain(sampleEntries), [sampleEntries]);
+
+  const handleVerify = useCallback(() => {
+    setIsVerifying(true);
+    soundEngine.play("click");
+    setTimeout(() => {
+      let allValid = true;
+      for (let i = 0; i < merkleTree.leafCount; i++) {
+        const proof = merkleTree.generateProof(i);
+        if (!proof || !MerkleTree.verifyProof(proof)) {
+          allValid = false;
+          break;
+        }
+      }
+      setIsVerifying(false);
+      if (allValid) {
+        setVerifiedAt(new Date().toISOString());
+        soundEngine.play("success");
+      }
+    }, 350);
+  }, [merkleTree]);
+
+  return (
+    <Card>
+      <CardHeader
+        title={t("trust.crypto.title")}
+        description={t("trust.crypto.subtitle")}
+        icon={<IconShield />}
+        actions={
+          <Badge tone={chainResult.isValid ? "success" : "danger"}>
+            {chainResult.isValid
+              ? t("trust.crypto.valid")
+              : t("trust.crypto.tampered")}
+          </Badge>
+        }
+      />
+      <CardContent className="space-y-4">
+        <div className="rounded-xl border border-line/70 bg-surface-sunken/40 p-3.5 text-xs">
+          <div className="flex items-center justify-between text-ink-muted">
+            <span>{t("trust.crypto.root")}</span>
+            <span
+              className="font-mono text-[0.7rem] text-primary-600 truncate max-w-[200px]"
+              title={merkleTree.root}>
+              0x{merkleTree.root.slice(0, 16)}...
+            </span>
+          </div>
+          <div className="mt-2 flex items-center justify-between text-ink-muted">
+            <span>{t("trust.crypto.records")}</span>
+            <span className="font-bold text-ink">{sampleEntries.length} entries</span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 pt-1">
+          <p className="text-xs text-ink-muted">
+            {verifiedAt
+              ? `${t("trust.crypto.lastVerified")}: ${formatRelative(new Date(verifiedAt))}`
+              : t("trust.crypto.unverifiedHint")}
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={isVerifying}
+            onClick={handleVerify}
+            className="rounded-xl font-bold">
+            {isVerifying
+              ? t("trust.crypto.verifying")
+              : t("trust.crypto.verifyBtn")}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

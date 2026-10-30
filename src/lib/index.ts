@@ -9,3 +9,5 @@ export * from "./vitals";
 export * from "./seo";
 export * from "./csp";
 export * from "./serviceWorker";
+export * from "./sync";
+export * from "./audio";

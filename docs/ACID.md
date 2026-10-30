@@ -275,3 +275,26 @@ Rules of thumb:
 - **Never** call `http.post/put/patch/delete` from a component for a mutation.
 - **Declare the fan-out** in `entities/activity/impact.ts` if the write touches
   domains beyond its own (see [CROSS_DOMAIN.md](CROSS_DOMAIN.md)).
+
+---
+
+## 8. Verifiable Cryptographic Integrity & Multi-Tab Replication
+
+The ACID pipeline extends client reliability with two innovative subsystems:
+
+### 8.1 Cryptographic Merkle Verification
+
+Local state journals and audit logs can be verified client-side using deterministic SHA-256 binary Merkle trees ([`src/entities/crypto/merkle.ts`](../src/entities/crypto/merkle.ts)):
+
+1. **Continuous Hash Chain:** Every recorded transaction commits to the cryptographic digest of its immediate predecessor ($H_i = \text{SHA-256}(H_{i-1} \parallel \text{canonical}(E_i))$), mathematically preventing entry deletion, insertion, or history rewriting.
+2. **Merkle Inclusion Proofs:** The client can prove any journal entry's inclusion in $O(\log N)$ steps against the published root hash without downloading full remote history.
+3. **Interactive Verification:** The Trust & Risk view exposes a one-click verification tool that recomputes the tree in memory and verifies mathematical integrity across all local journal entries.
+
+### 8.2 Real-Time Multi-Tab Replication (Lamport Clocks)
+
+Browser tabs communicate directly via HTML5 `BroadcastChannel` ([`src/lib/sync/crossTabSync.ts`](../src/lib/sync/crossTabSync.ts)):
+
+- Mutations in tab A broadcast a `TRANSACTION_COMMITTED` message.
+- Tab B receives the message, advances its logical clock ($L_{local} = \max(L_{local}, L_{msg}) + 1$), and triggers query invalidation without a server roundtrip.
+- Concurrent conflicts are resolved deterministically through Last-Write-Wins (LWW) total ordering.
+

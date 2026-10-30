@@ -12,6 +12,8 @@ import { useQueryClient, type QueryKey } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { ApiError } from "@/lib/http/errors";
 import { APP_EVENTS, appEvents } from "@/lib/eventBus";
+import { soundEngine } from "@/lib/audio";
+import { crossTabSync } from "@/lib/sync";
 import { useT } from "@/store/i18n";
 import { createEntryId, loadJournal, saveJournal } from "./journal";
 import { executeCommand, isReplayable } from "./commands";
@@ -201,6 +203,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
         await send();
         update(entry.id, { state: "committed", error: undefined, errorKey: undefined });
         invalidateKeys(entry.invalidate);
+        soundEngine.play("commit");
+        crossTabSync.broadcast("TRANSACTION_COMMITTED", { id: entry.id, resource: entry.resource });
         appEvents.emit(APP_EVENTS.transactionCommitted, { id: entry.id, entry, replayed: true });
         return true;
       } catch (error) {
@@ -262,6 +266,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
           const result = await config.request();
           update(id, { state: "committed" });
           invalidateKeys(config.invalidate ?? []);
+          soundEngine.play("commit");
+          crossTabSync.broadcast("TRANSACTION_COMMITTED", { id, resource: config.resource });
           if (config.successMessage) toast.success(config.successMessage);
           appEvents.emit(APP_EVENTS.transactionCommitted, { id, entry, result });
           config.onSuccess?.(result);
@@ -277,6 +283,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
           // --- Atomicity: roll the cache back -------------------------------
           restoreInverse(inverse);
+          soundEngine.play("rollback");
           const message = error instanceof ApiError ? error.message : t("common.errorHint");
           update(id, { state: "rolled-back", error: message });
           appEvents.emit(APP_EVENTS.transactionRolledBack, { id, entry, error });
@@ -331,6 +338,8 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
       revertCache(target);
       update(target.id, { state: "rolled-back", error: undefined });
+      soundEngine.play("rollback");
+      crossTabSync.broadcast("TRANSACTION_UNDONE", { id: target.id });
       toast.success(t("tx.rolledBack"));
       appEvents.emit(APP_EVENTS.transactionRolledBack, {
         id: target.id,

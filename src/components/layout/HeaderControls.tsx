@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, useState } from "react";
 import { Menu, MenuButton, MenuItem, MenuItems, Transition } from "@headlessui/react";
 import { Link } from "react-router-dom";
 import {
@@ -10,6 +10,8 @@ import {
   IconSun,
   IconTranslate,
   IconUser,
+  IconVolumeUp,
+  IconVolumeOff,
 } from "@/components/ui/icons";
 import { Avatar } from "@/components/ui/Avatar";
 import { Kbd, Badge } from "@/components/ui/Badge";
@@ -17,8 +19,10 @@ import { useNotifications } from "@/store/notifications";
 import { useTheme } from "@/store/theme";
 import { useT } from "@/store/i18n";
 import { useCommandPalette } from "@/store/command";
+import { useRealtime } from "@/store/realtime";
 import { formatRelative } from "@/lib/format/dates";
 import { formatNumber } from "@/lib/format/numbers";
+import { soundEngine } from "@/lib/audio";
 import { cx } from "@/lib/cx";
 import type { User } from "@/types";
 
@@ -74,6 +78,48 @@ export function LanguageToggle() {
       onClick={toggleLocale}>
       <IconTranslate className="h-5 w-5" />
     </ControlButton>
+  );
+}
+
+export function AudioToggle() {
+  const { t } = useT();
+  const [enabled, setEnabled] = useState(() => soundEngine.isAudioEnabled);
+
+  const toggle = () => {
+    const next = !enabled;
+    soundEngine.setEnabled(next);
+    setEnabled(next);
+    if (next) soundEngine.play("click");
+  };
+
+  return (
+    <ControlButton
+      label={
+        enabled
+          ? t("a11y.soundMute")
+          : t("a11y.soundEnable")
+      }
+      onClick={toggle}>
+      {enabled ? (
+        <IconVolumeUp className="h-5 w-5 text-primary-600" />
+      ) : (
+        <IconVolumeOff className="h-5 w-5 text-ink-muted" />
+      )}
+    </ControlButton>
+  );
+}
+
+export function PeerSyncIndicator() {
+  const { activeTabs } = useRealtime();
+  if (!activeTabs || activeTabs <= 1) return null;
+
+  return (
+    <span
+      title="Multi-tab real-time state synchronization via BroadcastChannel"
+      className="hidden items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[0.68rem] font-bold text-emerald-600 backdrop-blur md:inline-flex">
+      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
+      {activeTabs} Tabs
+    </span>
   );
 }
 

@@ -28,6 +28,8 @@ transaction inspector renders it per row; the audit trail renders it per event.
 | **notifications** | the user's "what happened" feed | `store/notifications` | event bridge + derived observer |
 | **audit** | chronological record of change | `entities/activity/feed.ts` | journal + reconstructed events |
 | **sync** | the offline outbox | `store/transaction/journal.ts` | `TransactionProvider` |
+| **crypto** | Merkle root & hash-chain proof | `entities/crypto/merkle.ts` | cryptographic journal commits |
+| **cross-tab sync** | peer replication across browser tabs | `lib/sync/crossTabSync.ts` | BroadcastChannel + Lamport clocks |
 
 Read models are **pure functions in `entities/`**: no React, no I/O, no cache
 access. A page never computes a number twice — it calls the same function the

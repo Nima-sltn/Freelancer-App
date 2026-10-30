@@ -5,10 +5,12 @@ import { APP_META, env } from "@/config/env";
 import { ROLE_HOME } from "@/config/constants";
 import type { User } from "@/types";
 import {
+  AudioToggle,
   CommandTrigger,
   DemoBadge,
   LanguageToggle,
   NotificationBell,
+  PeerSyncIndicator,
   ThemeToggle,
   UserMenu,
 } from "./HeaderControls";
@@ -57,9 +59,11 @@ export function Topbar({ user, onOpenMenu, onLogout, isLoadingUser }: Readonly<T
         </div>
 
         {env.useMocks ? <DemoBadge /> : null}
+        <PeerSyncIndicator />
 
         <div className="flex items-center gap-1">
           <LanguageToggle />
+          <AudioToggle />
           <ThemeToggle />
           <NotificationBell />
           {isLoadingUser ? (
