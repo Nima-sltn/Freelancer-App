@@ -30,7 +30,7 @@ export interface DateFormatOptions {
  * so the same call renders ۱۴۰۳/۰۵/۱۲ or 12/08/2024 depending on the locale.
  */
 export function formatDate(
-  value: string | number | Date | null | undefined,
+  value: DateInput,
   options: DateFormatOptions = {}
 ): string {
   const date = toDate(value);
@@ -47,7 +47,7 @@ export function formatDate(
 }
 
 export function formatDateShort(
-  value: string | number | Date | null | undefined,
+  value: DateInput,
   locale: Locale = getActiveLocale()
 ): string {
   const date = toDate(value);
@@ -60,7 +60,7 @@ export function formatDateShort(
 }
 
 export function formatDateTime(
-  value: string | number | Date | null | undefined,
+  value: DateInput,
   locale: Locale = getActiveLocale()
 ): string {
   return formatDate(value, { locale, withTime: true });
@@ -76,7 +76,7 @@ export function formatMonthLabel(date: Date, locale: Locale = getActiveLocale())
 
 /** "۳ روز پیش" / "3 days ago" via `Intl.RelativeTimeFormat` — never a stale string. */
 export function formatRelative(
-  value: string | number | Date | null | undefined,
+  value: DateInput,
   locale: Locale = getActiveLocale(),
   now: Date = new Date()
 ): string {

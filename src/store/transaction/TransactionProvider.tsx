@@ -61,7 +61,11 @@ const TransactionContext = createContext<TransactionContextValue | undefined>(un
  * cache), such entries are marked `rolled-back` with `errorKey: "tx.unreplayable"`
  * and their keys are invalidated so the UI re-reads server truth.
  */
-export function TransactionProvider({ children }: { children: ReactNode }) {
+export interface TransactionProviderProps {
+  readonly children: ReactNode;
+}
+
+export function TransactionProvider({ children }: Readonly<TransactionProviderProps>) {
   const queryClient = useQueryClient();
   const { t } = useT();
   const [entries, setEntries] = useState<JournalEntry[]>(() => loadJournal());

@@ -13,7 +13,6 @@ import { formatRelative } from "@/lib/format/dates";
 import { dictionaries, fa, type TranslationKey } from "./translations";
 
 export type TranslateParams = Record<string, string | number | undefined>;
-export type AnyTranslationKey = string;
 
 export interface I18nContextValue {
   readonly locale: Locale;
@@ -22,9 +21,9 @@ export interface I18nContextValue {
   readonly setLocale: (locale: Locale) => void;
   readonly toggleLocale: () => void;
   /** Translates a key and interpolates `{placeholder}` tokens. */
-  readonly t: (key: AnyTranslationKey, params?: TranslateParams) => string;
+  readonly t: (key: string, params?: TranslateParams) => string;
   /** Translates a pluralized key with count. */
-  readonly tp: (key: AnyTranslationKey, count: number, params?: TranslateParams) => string;
+  readonly tp: (key: string, count: number, params?: TranslateParams) => string;
   /** Formats a relative time string according to current locale. */
   readonly tRelative: (date: string | number | Date) => string;
 }

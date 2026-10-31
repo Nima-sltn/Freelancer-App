@@ -19,7 +19,7 @@ export class TactileSoundEngine {
   private ctx: AudioContext | null = null;
   private enabled = false;
   private masterGain: GainNode | null = null;
-  private volume = 0.15; // Kept gentle and unobtrusive
+  private readonly volume: number; // Kept gentle and unobtrusive
 
   constructor(options: SoundEngineOptions = {}) {
     this.enabled = options.enabled ?? false;

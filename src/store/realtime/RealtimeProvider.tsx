@@ -72,10 +72,10 @@ export function RealtimeProvider({ children }: Readonly<RealtimeProviderProps>) 
   useEffect(() => {
     crossTabSync.announcePresence();
     const unsub1 = crossTabSync.on("TRANSACTION_COMMITTED", () => {
-      void syncNow();
+      syncNow();
     });
     const unsub2 = crossTabSync.on("TRANSACTION_UNDONE", () => {
-      void syncNow();
+      syncNow();
     });
     const unsub3 = crossTabSync.on("PEER_HELLO", () => {
       setActiveTabs(crossTabSync.activePeerCount + 1);

@@ -121,10 +121,9 @@ export function CommandPalette() {
                       let segmentOffset = 0;
 
                       return (
-                        <li key={command.id}>
+                        <li key={command.id} role="option" aria-selected={isActive}>
                           <button
                             type="button"
-                            aria-selected={isActive}
                             data-active={isActive}
                             onMouseEnter={() => setCursor(index)}
                             onClick={() => runCommand(command.id)}

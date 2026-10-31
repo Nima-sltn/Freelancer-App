@@ -18,7 +18,12 @@ export interface CsvColumn<T> {
 
 function escapeCsvCell(value: unknown): string {
   if (value === null || value === undefined) return "";
-  const text = typeof value === "object" ? JSON.stringify(value) : String(value);
+  const text =
+    typeof value === "string"
+      ? value
+      : typeof value === "number" || typeof value === "boolean"
+        ? `${value}`
+        : JSON.stringify(value);
   if (/[",\n;]/.test(text)) {
     return `"${text.replace(/"/g, '""')}"`;
   }

@@ -99,6 +99,19 @@ function parseBody(config: InternalAxiosRequestConfig): Record<string, any> {
   return {};
 }
 
+function formatParamValue(value: unknown): string {
+  if (Array.isArray(value)) {
+    return value.join(",");
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return `${value}`;
+  }
+  return JSON.stringify(value);
+}
+
 function resolveUrl(config: InternalAxiosRequestConfig): URL {
   const base = config.baseURL ?? "";
   const url = config.url ?? "";
@@ -109,12 +122,7 @@ function resolveUrl(config: InternalAxiosRequestConfig): URL {
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value === undefined || value === null || value === "") return;
-      const strVal = Array.isArray(value)
-        ? value.join(",")
-        : typeof value === "object"
-          ? JSON.stringify(value)
-          : String(value);
-      parsed.searchParams.set(key, strVal);
+      parsed.searchParams.set(key, formatParamValue(value));
     });
   }
   return parsed;

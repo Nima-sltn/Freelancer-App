@@ -64,20 +64,15 @@ function useProjectsPageData(isOwner: boolean) {
   const ownerQuery = useOwnerProjects({});
   const publishedQuery = useProjects({ status: "OPEN" });
 
-  const source = isOwner ? ownerQuery.projects : publishedQuery.projects;
-  const isLoading = isOwner ? ownerQuery.isLoading : publishedQuery.isLoading;
-  const error = isOwner ? ownerQuery.error : publishedQuery.error;
-  const isFetching = isOwner ? ownerQuery.isFetching : publishedQuery.isFetching;
+  const activeQuery = isOwner ? ownerQuery : publishedQuery;
 
-  const refetch = () => {
-    if (isOwner) {
-      ownerQuery.refetch();
-    } else {
-      publishedQuery.refetch();
-    }
+  return {
+    source: activeQuery.projects,
+    isLoading: activeQuery.isLoading,
+    error: activeQuery.error,
+    isFetching: activeQuery.isFetching,
+    refetch: activeQuery.refetch,
   };
-
-  return { source, isLoading, error, isFetching, refetch };
 }
 
 /**

@@ -49,22 +49,8 @@ export function sha256(input: string): string {
 
   const rightRotate = (v: number, amount: number) => (v >>> amount) | (v << (32 - amount));
 
-  // Encode UTF-8 bytes
-  const bytes: number[] = [];
-  for (let i = 0; i < input.length; i++) {
-    let c = input.charCodeAt(i);
-    if (c < 128) {
-      bytes.push(c);
-    } else if (c < 2048) {
-      bytes.push(192 | (c >> 6), 128 | (c & 63));
-    } else if (c < 55296 || c >= 57344) {
-      bytes.push(224 | (c >> 12), 128 | ((c >> 6) & 63), 128 | (c & 63));
-    } else {
-      i++;
-      c = 65536 + (((c & 1023) << 10) | (input.charCodeAt(i) & 1023));
-      bytes.push(240 | (c >> 18), 128 | ((c >> 12) & 63), 128 | ((c >> 6) & 63), 128 | (c & 63));
-    }
-  }
+  // Encode UTF-8 bytes via standard TextEncoder
+  const bytes: number[] = Array.from(new TextEncoder().encode(input));
 
   const bitLength = bytes.length * 8;
   bytes.push(0x80);
@@ -149,7 +135,7 @@ export function canonicalStringify(value: unknown): string {
     return `[${value.map(canonicalStringify).join(",")}]`;
   }
   const obj = value as Record<string, unknown>;
-  const keys = Object.keys(obj).sort();
+  const keys = Object.keys(obj).sort((a, b) => a.localeCompare(b));
   const pairs = keys.map((key) => `${JSON.stringify(key)}:${canonicalStringify(obj[key])}`);
   return `{${pairs.join(",")}}`;
 }
@@ -189,8 +175,8 @@ export class MerkleTree {
     while (currentLevel.length > 1) {
       const nextLevel: string[] = [];
       for (let i = 0; i < currentLevel.length; i += 2) {
-        const left = currentLevel[i]!;
-        const right = i + 1 < currentLevel.length ? currentLevel[i + 1]! : left;
+        const left = currentLevel[i] ?? "";
+        const right = i + 1 < currentLevel.length ? currentLevel[i + 1] ?? left : left;
         nextLevel.push(hashPair(left, right));
       }
       calculatedLevels.push(nextLevel);
@@ -203,7 +189,7 @@ export class MerkleTree {
   /** The top root hash of the Merkle Tree. */
   public get root(): string {
     const top = this.levels[this.levels.length - 1];
-    return top && top[0] ? top[0] : sha256("empty");
+    return top?.[0] ?? sha256("empty");
   }
 
   /** Total count of leaf items in this tree. */
@@ -223,19 +209,19 @@ export class MerkleTree {
     let currentIndex = index;
 
     for (let levelIdx = 0; levelIdx < this.levels.length - 1; levelIdx++) {
-      const level = this.levels[levelIdx]!;
+      const level = this.levels[levelIdx] ?? [];
       const isRightSibling = currentIndex % 2 === 1;
       const siblingIndex = isRightSibling ? currentIndex - 1 : currentIndex + 1;
 
       if (siblingIndex < level.length) {
         steps.push({
-          hash: level[siblingIndex]!,
+          hash: level[siblingIndex] ?? "",
           direction: isRightSibling ? "left" : "right",
         });
       } else {
         // Sibling was paired with itself
         steps.push({
-          hash: level[currentIndex]!,
+          hash: level[currentIndex] ?? "",
           direction: "right",
         });
       }
@@ -244,7 +230,7 @@ export class MerkleTree {
     }
 
     return {
-      leafHash: this.leaves[index]!,
+      leafHash: this.leaves[index] ?? "",
       rootHash: this.root,
       leafIndex: index,
       steps,
@@ -290,8 +276,7 @@ export function verifyHashChain<T extends { id: string }>(
 
   let currentHash = sha256("genesis");
 
-  for (let i = 0; i < records.length; i++) {
-    const item = records[i]!;
+  for (const item of records) {
     currentHash = hashFn(item, currentHash);
   }
 

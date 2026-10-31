@@ -23,7 +23,7 @@ import {
   IconUsers,
   IconWallet,
 } from "@/components/ui/icons";
-import type { MatchScore, Project, Proposal, User } from "@/types";
+import type { Project, Proposal, User } from "@/types";
 import {
   ActivityWidget,
   BudgetWidget,
@@ -239,7 +239,7 @@ export function FreelancerDashboardView({ data, user }: Readonly<{ readonly data
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                {data.recommendations.slice(0, 4).map(({ project, score }: { project: Project; score: MatchScore }) => (
+                {data.recommendations.slice(0, 4).map(({ project, score }) => (
                   <div key={project._id} className="transition-all duration-200 hover:-translate-y-0.5">
                     <ProjectCard
                       project={project}

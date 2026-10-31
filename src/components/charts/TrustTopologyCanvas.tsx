@@ -20,6 +20,109 @@ interface Edge {
   strength: number;
 }
 
+function applyPhysics(
+  nodes: Node[],
+  edges: Edge[],
+  curCenterX: number,
+  curCenterY: number
+) {
+  for (const edge of edges) {
+    const source = nodes.find((n) => n.id === edge.source);
+    const target = nodes.find((n) => n.id === edge.target);
+    if (!source || !target) continue;
+
+    const dx = target.x - source.x;
+    const dy = target.y - source.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const targetDist = 95;
+    const force = (dist - targetDist) * edge.strength;
+
+    const fx = (dx / dist) * force;
+    const fy = (dy / dist) * force;
+
+    source.vx += fx;
+    source.vy += fy;
+    target.vx -= fx;
+    target.vy -= fy;
+  }
+
+  for (const node of nodes) {
+    const cdx = curCenterX - node.x;
+    const cdy = curCenterY - node.y;
+    node.vx += cdx * 0.005;
+    node.vy += cdy * 0.005;
+
+    node.vx *= 0.88;
+    node.vy *= 0.88;
+
+    node.x += node.vx;
+    node.y += node.vy;
+  }
+}
+
+function drawEdges(
+  ctx: CanvasRenderingContext2D,
+  edges: Edge[],
+  nodes: Node[],
+  hoveredNode: string | null
+) {
+  ctx.lineWidth = 1.5;
+  for (const edge of edges) {
+    const source = nodes.find((n) => n.id === edge.source);
+    const target = nodes.find((n) => n.id === edge.target);
+    if (!source || !target) continue;
+
+    const isHighlighted = hoveredNode === source.id || hoveredNode === target.id;
+    ctx.strokeStyle = isHighlighted
+      ? "rgba(99, 102, 241, 0.45)"
+      : "rgba(148, 163, 184, 0.22)";
+    ctx.beginPath();
+    ctx.moveTo(source.x, source.y);
+    ctx.lineTo(target.x, target.y);
+    ctx.stroke();
+  }
+}
+
+function drawNodes(
+  ctx: CanvasRenderingContext2D,
+  nodes: Node[],
+  hoveredNode: string | null,
+  pulse: number,
+  t: (k: string) => string
+) {
+  for (const node of nodes) {
+    const isHovered = hoveredNode === node.id;
+    const radius = node.radius + (isHovered ? 3 : 0);
+
+    ctx.beginPath();
+    ctx.arc(
+      node.x,
+      node.y,
+      radius + (node.id === "core" ? Math.sin(pulse) * 3 : 0),
+      0,
+      Math.PI * 2
+    );
+    ctx.fillStyle = isHovered
+      ? "rgba(99, 102, 241, 0.2)"
+      : "rgba(148, 163, 184, 0.1)";
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = node.color;
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#ffffff";
+    ctx.stroke();
+
+    ctx.font = "bold 11px system-ui, -apple-system, sans-serif";
+    ctx.fillStyle = "rgba(100, 116, 139, 0.9)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    ctx.fillText(t(node.labelKey), node.x, node.y + radius + 5);
+  }
+}
+
 export interface TrustTopologyCanvasProps {
   readonly trustScore?: number;
   readonly className?: string;
@@ -162,86 +265,10 @@ export function TrustTopologyCanvas({
 
       const nodes = nodesRef.current;
       const edges = edgesRef.current;
-      const curCenterX = width / 2;
-      const curCenterY = canvasHeight / 2;
 
-      // Spring physics step
-      for (const edge of edges) {
-        const source = nodes.find((n) => n.id === edge.source);
-        const target = nodes.find((n) => n.id === edge.target);
-        if (!source || !target) continue;
-
-        const dx = target.x - source.x;
-        const dy = target.y - source.y;
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        const targetDist = 95;
-        const force = (dist - targetDist) * edge.strength;
-
-        const fx = (dx / dist) * force;
-        const fy = (dy / dist) * force;
-
-        source.vx += fx;
-        source.vy += fy;
-        target.vx -= fx;
-        target.vy -= fy;
-      }
-
-      // Center gravity & damping
-      for (const node of nodes) {
-        const cdx = curCenterX - node.x;
-        const cdy = curCenterY - node.y;
-        node.vx += cdx * 0.005;
-        node.vy += cdy * 0.005;
-
-        node.vx *= 0.88;
-        node.vy *= 0.88;
-
-        node.x += node.vx;
-        node.y += node.vy;
-      }
-
-      // Draw edges
-      ctx.lineWidth = 1.5;
-      for (const edge of edges) {
-        const source = nodes.find((n) => n.id === edge.source);
-        const target = nodes.find((n) => n.id === edge.target);
-        if (!source || !target) continue;
-
-        const isHighlighted = hoveredNode === source.id || hoveredNode === target.id;
-        ctx.strokeStyle = isHighlighted ? "rgba(99, 102, 241, 0.45)" : "rgba(148, 163, 184, 0.22)";
-        ctx.beginPath();
-        ctx.moveTo(source.x, source.y);
-        ctx.lineTo(target.x, target.y);
-        ctx.stroke();
-      }
-
-      // Draw nodes
-      for (const node of nodes) {
-        const isHovered = hoveredNode === node.id;
-        const radius = node.radius + (isHovered ? 3 : 0);
-
-        // Subtle glow ring
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, radius + (node.id === "core" ? Math.sin(pulse) * 3 : 0), 0, Math.PI * 2);
-        ctx.fillStyle = isHovered ? "rgba(99, 102, 241, 0.2)" : "rgba(148, 163, 184, 0.1)";
-        ctx.fill();
-
-        // Node fill
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = node.color;
-        ctx.fill();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "#ffffff";
-        ctx.stroke();
-
-        // Label
-        ctx.font = "bold 11px system-ui, -apple-system, sans-serif";
-        ctx.fillStyle = "rgba(100, 116, 139, 0.9)";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "top";
-        ctx.fillText(t(node.labelKey), node.x, node.y + radius + 5);
-      }
+      applyPhysics(nodes, edges, width / 2, canvasHeight / 2);
+      drawEdges(ctx, edges, nodes, hoveredNode);
+      drawNodes(ctx, nodes, hoveredNode, pulse, t);
 
       animFrameId.current = requestAnimationFrame(render);
     };
